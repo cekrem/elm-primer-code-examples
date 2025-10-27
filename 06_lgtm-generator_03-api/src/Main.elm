@@ -29,7 +29,7 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( { phrase = Loading
       }
-    , fetchLgtmPhrase
+    , fetchLgtmPhrase GotPhrase
     )
 
 
@@ -58,7 +58,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangePhrase ->
-            ( model, fetchLgtmPhrase )
+            ( { model | phrase = Loading }, fetchLgtmPhrase GotPhrase )
 
         GotPhrase result ->
             case result of
@@ -73,11 +73,11 @@ update msg model =
             ( model, Cmd.none )
 
 
-fetchLgtmPhrase : Cmd Msg
-fetchLgtmPhrase =
+fetchLgtmPhrase : (Result Error String -> msg) -> Cmd msg
+fetchLgtmPhrase toMsg =
     Http.get
         { url = "http://localhost:3000/lgtm"
-        , expect = Http.expectString GotPhrase
+        , expect = Http.expectString toMsg
         }
 
 
