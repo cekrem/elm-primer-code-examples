@@ -1,17 +1,3 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Main</title>
-  <style>body { padding: 0; margin: 0; }</style>
-</head>
-
-<body>
-
-<pre id="elm"></pre>
-
-<script>
-try {
 (function(scope){
 'use strict';
 
@@ -4384,7 +4370,7 @@ function _Browser_load(url)
 		}
 	}));
 }
-var $author$project$Main$defaultOptions = {lives: 6, word: 'FUNCTIONAL'};
+var $author$project$Main$defaultOptions = {maxLives: 6, word: 'FUNCTIONAL'};
 var $author$project$Main$Playing = function (a) {
 	return {$: 'Playing', a: a};
 };
@@ -4488,10 +4474,8 @@ var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$String$toUpper = _String_toUpper;
 var $author$project$Main$init = function (_v0) {
 	var word = _v0.word;
-	var lives = _v0.lives;
 	return {
-		gameStatus: $author$project$Main$Playing(lives),
-		guessedLetters: $elm$core$Set$empty,
+		gameStatus: $author$project$Main$Playing($elm$core$Set$empty),
 		wordToGuess: $elm$core$String$toUpper(word)
 	};
 };
@@ -5250,10 +5234,22 @@ var $elm$core$List$all = F2(
 			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
 			list);
 	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
 };
+var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5428,25 +5424,30 @@ var $author$project$Main$update = F2(
 			switch (_v0.b.$) {
 				case 'Playing':
 					var letter = _v0.a.a;
-					var currentLives = _v0.b.a;
-					if (A2($elm$core$Set$member, letter, model.guessedLetters)) {
+					var guessedLetters = _v0.b.a;
+					if (A2($elm$core$Set$member, letter, guessedLetters)) {
 						return model;
 					} else {
-						var newGuessedLetters = A2($elm$core$Set$insert, letter, model.guessedLetters);
-						var isCorrectGuess = A2(
-							$elm$core$String$contains,
-							$elm$core$String$fromChar(letter),
-							model.wordToGuess);
-						var livesRemaining = isCorrectGuess ? currentLives : (currentLives - 1);
+						var newGuessedLetters = A2($elm$core$Set$insert, letter, guessedLetters);
+						var wrongGuessCount = $elm$core$List$length(
+							A2(
+								$elm$core$List$filter,
+								function (l) {
+									return !A2(
+										$elm$core$String$contains,
+										$elm$core$String$fromChar(l),
+										model.wordToGuess);
+								},
+								$elm$core$Set$toList(newGuessedLetters)));
 						var newGameStatus = A2(
 							$elm$core$List$all,
 							function (correctChar) {
 								return A2($elm$core$Set$member, correctChar, newGuessedLetters);
 							},
-							$elm$core$String$toList(model.wordToGuess)) ? $author$project$Main$Won : ((livesRemaining <= 0) ? $author$project$Main$Lost : $author$project$Main$Playing(livesRemaining));
+							$elm$core$String$toList(model.wordToGuess)) ? $author$project$Main$Won : ((_Utils_cmp(wrongGuessCount, $author$project$Main$defaultOptions.maxLives) > -1) ? $author$project$Main$Lost : $author$project$Main$Playing(newGuessedLetters));
 						return _Utils_update(
 							model,
-							{gameStatus: newGameStatus, guessedLetters: newGuessedLetters});
+							{gameStatus: newGameStatus});
 					}
 				case 'Won':
 					var _v2 = _v0.b;
@@ -5496,8 +5497,17 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$core$Char$fromCode = _Char_fromCode;
 var $author$project$Main$viewAlphabet = function (model) {
+	var guessedLetters = function () {
+		var _v1 = model.gameStatus;
+		if (_v1.$ === 'Playing') {
+			var letters = _v1.a;
+			return letters;
+		} else {
+			return $elm$core$Set$empty;
+		}
+	}();
 	var isDisabled = function (letter) {
-		return A2($elm$core$Set$member, letter, model.guessedLetters) || function () {
+		return A2($elm$core$Set$member, letter, guessedLetters) || function () {
 			var _v0 = model.gameStatus;
 			if (_v0.$ === 'Playing') {
 				return false;
@@ -5558,14 +5568,25 @@ var $author$project$Main$viewGameStatus = function (model) {
 var $author$project$Main$viewLivesRemaining = function (model) {
 	var _v0 = model.gameStatus;
 	if (_v0.$ === 'Playing') {
-		var lives = _v0.a;
+		var guessedLetters = _v0.a;
+		var wrongGuessCount = $elm$core$List$length(
+			A2(
+				$elm$core$List$filter,
+				function (l) {
+					return !A2(
+						$elm$core$String$contains,
+						$elm$core$String$fromChar(l),
+						model.wordToGuess);
+				},
+				$elm$core$Set$toList(guessedLetters)));
+		var livesRemaining = $author$project$Main$defaultOptions.maxLives - wrongGuessCount;
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
 			_List_fromArray(
 				[
 					$elm$html$Html$text(
-					'Lives remaining: ' + $elm$core$String$fromInt(lives))
+					'Lives remaining: ' + $elm$core$String$fromInt(livesRemaining))
 				]));
 	} else {
 		return $elm$html$Html$text('');
@@ -5591,6 +5612,15 @@ var $elm$core$List$intersperse = F2(
 		}
 	});
 var $author$project$Main$viewWord = function (model) {
+	var guessedLetters = function () {
+		var _v0 = model.gameStatus;
+		if (_v0.$ === 'Playing') {
+			var letters = _v0.a;
+			return letters;
+		} else {
+			return $elm$core$Set$empty;
+		}
+	}();
 	var displayWord = $elm$core$String$fromList(
 		A2(
 			$elm$core$List$intersperse,
@@ -5598,7 +5628,7 @@ var $author$project$Main$viewWord = function (model) {
 			A2(
 				$elm$core$List$map,
 				function (_char) {
-					return A2($elm$core$Set$member, _char, model.guessedLetters) ? _char : _Utils_chr('_');
+					return A2($elm$core$Set$member, _char, guessedLetters) ? _char : _Utils_chr('_');
 				},
 				$elm$core$String$toList(model.wordToGuess))));
 	return A2(
@@ -5652,21 +5682,3 @@ var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
-
-  var app = Elm.Main.init({ node: document.getElementById("elm") });
-}
-catch (e)
-{
-  // display initialization errors (e.g. bad flags, infinite recursion)
-  var header = document.createElement("h1");
-  header.style.fontFamily = "monospace";
-  header.innerText = "Initialization Error";
-  var pre = document.getElementById("elm");
-  document.body.insertBefore(header, pre);
-  pre.innerText = e;
-  throw e;
-}
-</script>
-
-</body>
-</html>
