@@ -5,6 +5,8 @@ import Html exposing (Html)
 import Html.Attributes as Attributes
 import Html.Events as Events
 import Http exposing (Error(..))
+import Json.Decode as Decode exposing (Decoder)
+import String exposing (String)
 
 
 
@@ -73,12 +75,21 @@ update msg model =
             ( model, Cmd.none )
 
 
+
+-- CMD
+
+
 fetchLgtmPhrase : (Result Error String -> msg) -> Cmd msg
 fetchLgtmPhrase toMsg =
     Http.get
         { url = "http://localhost:3000/lgtm"
-        , expect = Http.expectString toMsg
+        , expect = Http.expectJson toMsg phraseDecoder
         }
+
+
+phraseDecoder : Decoder String
+phraseDecoder =
+    Decode.field "phrase" Decode.string
 
 
 

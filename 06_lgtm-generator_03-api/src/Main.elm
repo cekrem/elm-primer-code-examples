@@ -73,6 +73,10 @@ update msg model =
             ( model, Cmd.none )
 
 
+
+-- CMD
+
+
 fetchLgtmPhrase : (Result Error String -> msg) -> Cmd msg
 fetchLgtmPhrase toMsg =
     Http.get
