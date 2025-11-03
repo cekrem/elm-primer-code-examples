@@ -42,8 +42,15 @@ type alias Model =
 
 type Phrase
     = Loading
-    | Success String
+    | Success PhrasePayload
     | Error Error
+
+
+type alias PhrasePayload =
+    { phrase : String
+    , source : String
+    , length : Int
+    }
 
 
 
@@ -52,7 +59,7 @@ type Phrase
 
 type Msg
     = ChangePhrase
-    | GotPhrase (Result Error String)
+    | GotPhrase (Result Error PhrasePayload)
     | CopyToClipboard
 
 
@@ -79,7 +86,7 @@ update msg model =
 -- CMD
 
 
-fetchLgtmPhrase : (Result Error String -> msg) -> Cmd msg
+fetchLgtmPhrase : (Result Error PhrasePayload -> msg) -> Cmd msg
 fetchLgtmPhrase toMsg =
     Http.get
         { url = "http://localhost:3000/lgtm"
@@ -87,9 +94,12 @@ fetchLgtmPhrase toMsg =
         }
 
 
-phraseDecoder : Decoder String
+phraseDecoder : Decoder PhrasePayload
 phraseDecoder =
-    Decode.field "phrase" Decode.string
+    Decode.map3 PhrasePayload
+        (Decode.field "phrase" Decode.string)
+        (Decode.field "source" Decode.string)
+        (Decode.field "length" Decode.int)
 
 
 
@@ -114,23 +124,23 @@ view model =
 
 viewPhrase : Phrase -> Html msg
 viewPhrase phrase =
-    let
-        string =
-            case phrase of
-                Success p ->
-                    p
+    case phrase of
+        Success payload ->
+            Html.span
+                [ Attributes.title <| "An LGTM quote for your PR review! Source : " ++ payload.source
+                ]
+                [ Html.text payload.phrase ]
 
-                Loading ->
-                    "Loading..."
+        Loading ->
+            Html.text "Loading..."
 
-                Error err ->
-                    case err of
-                        BadStatus status ->
-                            status
-                                |> String.fromInt
-                                |> String.append "Http error: "
+        Error err ->
+            case err of
+                BadStatus status ->
+                    status
+                        |> String.fromInt
+                        |> String.append "Http error: "
+                        |> Html.text
 
-                        _ ->
-                            "Unknown error"
-    in
-    Html.text string
+                _ ->
+                    Html.text "Unknown error"
