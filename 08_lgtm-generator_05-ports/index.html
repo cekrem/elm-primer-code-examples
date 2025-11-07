@@ -14,9 +14,28 @@
 
       app.ports.copyToClipboard.subscribe((text) => {
         const input = document.createElement;
-        console.log(`Text to copy: ${text}`);
-        /* TODO: Add proper impolementation with widespread browser support */
+        copyToClipboard(text);
       });
+
+      // How ugly is this?
+      // https://cekrem.github.io/posts/clipboard-api-how-hard-can-it-be/
+      function copyToClipboard(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+          document.execCommand("copy");
+          return true;
+        } catch (err) {
+          return false;
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      }
     </script>
   </body>
 </html>
