@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
@@ -78,8 +78,14 @@ update msg model =
                     ( { model | phrase = Error err }, Cmd.none )
 
         CopyToClipboard ->
-            -- We'll implement clipboard access in Chapter 8 when we cover JavaScript interop
-            ( model, Cmd.none )
+            ( model
+            , case model.phrase of
+                Success { phrase } ->
+                    copyToClipboard phrase
+
+                _ ->
+                    Cmd.none
+            )
 
 
 
@@ -103,6 +109,15 @@ phraseDecoder =
 
 
 
+-- PORTS
+
+
+{-| Outbound port, Elm -> JS
+-}
+port copyToClipboard : String -> Cmd msg
+
+
+
 -- VIEW
 
 
@@ -122,7 +137,7 @@ view model =
         ]
 
 
-viewPhrase : Phrase -> Html msg
+viewPhrase : Phrase -> Html Msg
 viewPhrase phrase =
     case phrase of
         Success payload ->

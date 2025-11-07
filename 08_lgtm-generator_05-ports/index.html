@@ -1,11 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Elm app with ports</title>
+    <title>LGTM Generator</title>
   </head>
   <body>
-    todo: bootstrap elm
+    <div id="app"></div>
+    <script src="main.js"></script>
+    <script>
+      const app = Elm.Main.init({
+        node: document.getElementById("app"),
+      });
+
+      app.ports.copyToClipboard.subscribe((text) => {
+        console.log(`Text to copy: ${text}`);
+      });
+    </script>
   </body>
 </html>

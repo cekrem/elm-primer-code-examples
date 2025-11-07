@@ -86,7 +86,7 @@ update msg model =
 -- CMD
 
 
-fetchLgtmPhrase : (Result Error PhrasePayload -> msg) -> Cmd msg
+fetchLgtmPhrase : (Result Error PhrasePayload -> Msg) -> Cmd Msg
 fetchLgtmPhrase toMsg =
     Http.get
         { url = "http://localhost:3000/lgtm"
@@ -122,7 +122,7 @@ view model =
         ]
 
 
-viewPhrase : Phrase -> Html msg
+viewPhrase : Phrase -> Html Msg
 viewPhrase phrase =
     case phrase of
         Success payload ->
