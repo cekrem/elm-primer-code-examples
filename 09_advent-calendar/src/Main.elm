@@ -134,13 +134,14 @@ view { today, openSlots } =
             openSlots |> Set.member day
     in
     Html.div
-        [ Attr.class "flex flex-wrap gap-[2vw]"
+        [ Attr.class "flex flex-wrap gap-[8vw] sm:gap-[2vmin]"
         , Attr.class "justify-center items-center"
         , Attr.class "min-w-[100vw] min-h-[100vh]"
-        , Attr.class "p-4"
-        , Attr.class "text-[8vw]"
+        , Attr.class "p-[4vmin]"
+        , Attr.class "text-[16vw] sm:text-[8vmin]"
         , Attr.class "font-mono font-bold"
-        , Attr.class "bg-blue-700"
+        , Attr.class "bg-sky-300"
+        , Attr.class "overflow-y-auto"
         ]
         (viewHeader
             :: viewDay today
@@ -156,7 +157,7 @@ view { today, openSlots } =
 viewHeader : Html msg
 viewHeader =
     Html.div
-        [ Attr.class "w-full h-[16vw] text-center"
+        [ Attr.class "w-full sm:h-[16vmin] text-center underline"
         ]
         [ Html.text "Advent 2025" ]
 
@@ -164,7 +165,7 @@ viewHeader =
 viewDay : Day -> Html msg
 viewDay day =
     Html.div
-        [ Attr.class "w-[52vmin] h-[16vw]"
+        [ Attr.class "w-2/3 sm:w-[52vmin] sm:h-[16vmin]"
         , Attr.class "flex items-center justify-center"
         , Attr.class "bg-green-300"
         , Attr.class "rounded-xl"
@@ -191,18 +192,19 @@ giftSlot number open gift onToggle =
     let
         dynamicClass =
             if open then
-                Attr.class "text-red-700 bg-white border-red-700"
+                Attr.class "text-red-500 bg-white border-red-700"
 
             else
-                Attr.class "text-white bg-red-700 border-transparent"
+                Attr.class "text-white bg-red-500 border-transparent"
     in
     Html.div
         [ Attr.class "flex justify-center items-center"
-        , Attr.class "size-[16vw]"
+        , Attr.class "h-[24vh] w-1/3 sm:size-[16vmin]"
         , Attr.class "rounded-xl"
         , Attr.class "select-none"
         , Attr.class "cursor-pointer"
         , Attr.class "border-dashed border-4"
+        , Attr.class "hover:scale-110"
 
         -- Dynamic stuff
         , Attr.class "transition-all"
@@ -225,7 +227,7 @@ giftContent gift =
             Html.text <| String.fromChar content
 
         NotYet ->
-            Html.text "❌"
+            Html.text "?"
 
         None ->
-            Html.text "⁉️"
+            Html.text "!?"
