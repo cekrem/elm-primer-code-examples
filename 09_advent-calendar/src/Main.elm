@@ -224,10 +224,10 @@ giftContent : Gift -> Html msg
 giftContent gift =
     case gift of
         Available content ->
-            Html.text <| String.fromChar content
+            Html.span [] [ Html.text <| String.fromChar content ]
 
         NotYet ->
-            Html.text "?"
+            Html.span [ Attr.class "opacity-30" ] [ Html.text "?" ]
 
         None ->
-            Html.text "!?"
+            Html.span [ Attr.class "opacity-30" ] [ Html.text "?!" ]
