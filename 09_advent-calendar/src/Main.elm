@@ -134,56 +134,52 @@ view { today, openSlots } =
             openSlots |> Set.member day
     in
     Html.div
-        [ Attr.style "display" "flex"
-        , Attr.style "flex-wrap" "wrap"
-        , Attr.style "gap" "1rem"
-        , Attr.style "height" "100vh"
-        , Attr.style "width" "100vw"
-        , Attr.style "overflow-x" "scroll"
-        , Attr.style "font-size" "10vw"
-        , Attr.style "box-sizing" "border-box"
-        , Attr.style "padding" "1rem"
-        , Attr.style "justify-content" "space-around"
-        , Attr.style "background" "blue"
+        [ Attr.class "flex flex-wrap gap-[2vw]"
+        , Attr.class "justify-center items-center"
+        , Attr.class "size-full"
+        , Attr.class "p-4"
+        , Attr.class "text-[10vw]"
+        , Attr.class "bg-blue-700"
         ]
-        (adventDays
-            |> List.map
-                (\num ->
-                    giftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
-                )
+        (greeting today
+            :: (adventDays
+                    |> List.map
+                        (\num ->
+                            giftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
+                        )
+               )
         )
+
+
+greeting : Day -> Html msg
+greeting day =
+    Html.div []
+        [ Html.text "Advent"
+        ]
 
 
 giftSlot : Int -> Bool -> Gift -> msg -> Html msg
 giftSlot number open gift onToggle =
     let
-        ( background, fontColor, border ) =
+        dynamicClass =
             if open then
-                ( "white", "red", "thick dotted gray" )
+                Attr.class "text-red-700 bg-white border-red-700"
 
             else
-                ( "red", "white", "none" )
+                Attr.class "text-white bg-red-700 border-transparent"
     in
     Html.div
-        [ Attr.style "width" "16vw"
-        , Attr.style "height" "16vw"
-        , Attr.style "box-sizing" "border-box"
-        , Attr.style "padding" "0"
-        , Attr.style "display" "flex"
-        , Attr.style "justify-content" "center"
-        , Attr.style "align-items" "center"
-        , Attr.style "text-align" "center"
-        , Attr.style "font-family" "monospace"
-        , Attr.style "font-weight" "bold"
-        , Attr.style "border-radius" "0.25rem"
-        , Attr.style "user-select" "none"
-        , Attr.style "cursor" "pointer"
+        [ Attr.class "flex justify-center items-center"
+        , Attr.class "size-[16vw]"
+        , Attr.class "font-mono font-bold"
+        , Attr.class "rounded-xl"
+        , Attr.class "select-none"
+        , Attr.class "cursor-pointer"
+        , Attr.class "border-dashed border-4"
 
         -- Dynamic stuff
-        , Attr.style "transition" "all 0.1s linear"
-        , Attr.style "background" background
-        , Attr.style "color" fontColor
-        , Attr.style "border" border
+        , Attr.class "transition-all"
+        , dynamicClass
         , Events.onClick onToggle
         ]
         (if open then
