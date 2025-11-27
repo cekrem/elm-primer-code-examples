@@ -39,7 +39,7 @@ type Day
 
 
 type Gift
-    = Available String
+    = Available Char
     | NotYet
     | None
 
@@ -49,11 +49,11 @@ adventDays =
     List.range 1 24
 
 
-allGifts : Dict Int String
+allGifts : Dict Int Char
 allGifts =
     "Video_fra_vårt_bryllup🥳🎄"
         |> String.toList
-        |> List.indexedMap (\i char -> ( i + 1, String.fromChar char ))
+        |> List.indexedMap (\i char -> ( i + 1, char ))
         |> Dict.fromList
 
 
@@ -156,21 +156,34 @@ view { today, openSlots } =
 
 giftSlot : Int -> Bool -> Gift -> msg -> Html msg
 giftSlot number open gift onToggle =
+    let
+        ( background, fontColor, border ) =
+            if open then
+                ( "whitesmoke", "darkred", "thick dotted gray" )
+
+            else
+                ( "darkred", "whitesmoke", "none" )
+    in
     Html.div
         [ Attr.style "width" "16vw"
         , Attr.style "height" "16vw"
         , Attr.style "box-sizing" "border-box"
+        , Attr.style "padding" "0"
         , Attr.style "display" "flex"
         , Attr.style "justify-content" "center"
         , Attr.style "align-items" "center"
         , Attr.style "text-align" "center"
-        , Attr.style "background" "darkred"
-        , Attr.style "color" "whitesmoke"
-        , Attr.style "font-family" "sans-serif"
+        , Attr.style "font-family" "monospace"
         , Attr.style "font-weight" "bold"
         , Attr.style "border-radius" "0.25rem"
         , Attr.style "user-select" "none"
         , Attr.style "cursor" "pointer"
+
+        -- Dynamic stuff
+        , Attr.style "transition" "all 0.1s linear"
+        , Attr.style "background" background
+        , Attr.style "color" fontColor
+        , Attr.style "border" border
         , Events.onClick onToggle
         ]
         (if open then
@@ -186,10 +199,10 @@ giftContent : Gift -> Html msg
 giftContent gift =
     case gift of
         Available content ->
-            Html.text content
+            Html.text <| String.fromChar content
 
         NotYet ->
             Html.text "❌"
 
         None ->
-            Html.text "❌"
+            Html.text "⁉️"
