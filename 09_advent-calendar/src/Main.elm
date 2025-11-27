@@ -15,7 +15,7 @@ import Set exposing (Set)
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( { today = Advent 1, openSlots = Set.empty }, Cmd.none )
+        { init = always ( { today = Advent 24, openSlots = Set.empty }, Cmd.none )
         , view = view
         , update = update
         , subscriptions = always Sub.none
@@ -51,15 +51,18 @@ adventDays =
 
 allGifts : Dict Int String
 allGifts =
-    Dict.empty
-        |> Dict.insert 1 "Today I'll cook your favorite dinner"
-        |> Dict.insert 2 "I'll do the dishes (and then some)"
-        |> Dict.insert 3 "I admit you beat me once at Mario Kart"
-        |> Dict.insert 4 "Let's watch _your_ favorite movie"
+    "Video_fra_vårt_bryllup🥳🎄"
+        |> String.toList
+        |> List.indexedMap (\i char -> ( i + 1, String.fromChar char ))
+        |> Dict.fromList
 
 
 giftsForToday : Day -> Dict Int Gift
 giftsForToday day =
+    let
+        _ =
+            Debug.log "giftsForToday called" ()
+    in
     case day of
         Other ->
             allGifts
@@ -78,7 +81,7 @@ giftsForToday day =
 
         Christmas ->
             allGifts
-                |> Dict.map (\d gift -> Available gift)
+                |> Dict.map (\_ gift -> Available gift)
 
 
 
@@ -137,7 +140,7 @@ view { today, openSlots } =
         , Attr.style "height" "100vh"
         , Attr.style "width" "100vw"
         , Attr.style "overflow-x" "scroll"
-        , Attr.style "font-size" "2vw"
+        , Attr.style "font-size" "10vw"
         , Attr.style "box-sizing" "border-box"
         , Attr.style "padding" "1rem"
         , Attr.style "justify-content" "space-around"
@@ -157,7 +160,6 @@ giftSlot number open gift onToggle =
         [ Attr.style "width" "16vw"
         , Attr.style "height" "16vw"
         , Attr.style "box-sizing" "border-box"
-        , Attr.style "padding" "2rem"
         , Attr.style "display" "flex"
         , Attr.style "justify-content" "center"
         , Attr.style "align-items" "center"
@@ -167,6 +169,8 @@ giftSlot number open gift onToggle =
         , Attr.style "font-family" "sans-serif"
         , Attr.style "font-weight" "bold"
         , Attr.style "border-radius" "0.25rem"
+        , Attr.style "user-select" "none"
+        , Attr.style "cursor" "pointer"
         , Events.onClick onToggle
         ]
         (if open then
@@ -185,7 +189,7 @@ giftContent gift =
             Html.text content
 
         NotYet ->
-            Html.text "You have to wait a bit longer!"
+            Html.text "❌"
 
         None ->
-            Html.text "Ooops! Looks like santa forgot a day!"
+            Html.text "❌"
