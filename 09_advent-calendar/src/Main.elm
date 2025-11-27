@@ -15,7 +15,7 @@ import Set exposing (Set)
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( { today = Advent 24, openSlots = Set.empty }, Cmd.none )
+        { init = always ( { today = Advent 2, openSlots = Set.empty }, Cmd.none )
         , view = view
         , update = update
         , subscriptions = always Sub.none
@@ -136,12 +136,14 @@ view { today, openSlots } =
     Html.div
         [ Attr.class "flex flex-wrap gap-[2vw]"
         , Attr.class "justify-center items-center"
-        , Attr.class "size-full"
+        , Attr.class "min-w-[100vw] min-h-[100vh]"
         , Attr.class "p-4"
-        , Attr.class "text-[10vw]"
+        , Attr.class "text-[8vw]"
+        , Attr.class "font-mono font-bold"
         , Attr.class "bg-blue-700"
         ]
-        (greeting today
+        (viewHeader
+            :: viewDay today
             :: (adventDays
                     |> List.map
                         (\num ->
@@ -151,10 +153,36 @@ view { today, openSlots } =
         )
 
 
-greeting : Day -> Html msg
-greeting day =
-    Html.div []
-        [ Html.text "Advent"
+viewHeader : Html msg
+viewHeader =
+    Html.div
+        [ Attr.class "w-full h-[16vw] text-center"
+        ]
+        [ Html.text "Advent 2025" ]
+
+
+viewDay : Day -> Html msg
+viewDay day =
+    Html.div
+        [ Attr.class "w-[52vmin] h-[16vw]"
+        , Attr.class "flex items-center justify-center"
+        , Attr.class "bg-green-300"
+        , Attr.class "rounded-xl"
+        , Attr.class "text-center"
+        , Attr.class "text-[0.5em]"
+        ]
+        [ Html.text <|
+            case day of
+                Christmas ->
+                    "Christmas🎄"
+
+                Advent num ->
+                    num
+                        |> String.fromInt
+                        |> String.append "December "
+
+                Other ->
+                    "Wrong month! ❌"
         ]
 
 
@@ -171,7 +199,6 @@ giftSlot number open gift onToggle =
     Html.div
         [ Attr.class "flex justify-center items-center"
         , Attr.class "size-[16vw]"
-        , Attr.class "font-mono font-bold"
         , Attr.class "rounded-xl"
         , Attr.class "select-none"
         , Attr.class "cursor-pointer"
