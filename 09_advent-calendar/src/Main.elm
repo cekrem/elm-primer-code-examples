@@ -144,7 +144,7 @@ view { today, openSlots } =
         , Attr.style "box-sizing" "border-box"
         , Attr.style "padding" "1rem"
         , Attr.style "justify-content" "space-around"
-        , Attr.style "background" "darkblue"
+        , Attr.style "background" "blue"
         ]
         (adventDays
             |> List.map
@@ -159,10 +159,10 @@ giftSlot number open gift onToggle =
     let
         ( background, fontColor, border ) =
             if open then
-                ( "whitesmoke", "darkred", "thick dotted gray" )
+                ( "white", "red", "thick dotted gray" )
 
             else
-                ( "darkred", "whitesmoke", "none" )
+                ( "red", "white", "none" )
     in
     Html.div
         [ Attr.style "width" "16vw"
