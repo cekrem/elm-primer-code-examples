@@ -16,7 +16,7 @@ main : Program () Model Msg
 main =
     Browser.element
         -- TODO: Make today be set based on actual date/time:
-        { init = always ( { today = Christmas, openSlots = Set.empty }, Cmd.none )
+        { init = always ( { today = Advent 10, openSlots = Set.empty }, Cmd.none )
         , view = view
         , update = update
         , subscriptions = always Sub.none
