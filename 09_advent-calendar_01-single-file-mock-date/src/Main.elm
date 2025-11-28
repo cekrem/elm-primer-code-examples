@@ -52,7 +52,7 @@ adventDays =
 
 allGifts : Dict Int Char
 allGifts =
-    "That nice dress you like"
+    "That_nice_dress_you_like"
         |> String.toList
         |> List.indexedMap (\i char -> ( i + 1, char ))
         |> Dict.fromList
