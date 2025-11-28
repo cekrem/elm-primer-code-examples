@@ -29,7 +29,7 @@ init () =
     ( { today = Unset
       , openSlots = Set.empty
       }
-    , Task.perform GotZone Time.here
+    , Task.perform GotDay getDay
     )
 
 
@@ -101,20 +101,13 @@ giftsForToday day =
 
 
 type Msg
-    = GotZone Time.Zone
-    | GotTime Time.Zone Time.Posix
+    = GotDay Day
     | ToggleGiftSlotOpen Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotZone zone ->
-            ( model, Task.perform (GotTime zone) Time.now )
-
-        GotTime zone time ->
-            ( { model | today = initDay zone time }, Cmd.none )
-
         ToggleGiftSlotOpen num ->
             let
                 transform : Int -> Set Int -> Set Int
@@ -126,6 +119,18 @@ update msg model =
                         Set.insert
             in
             ( { model | openSlots = model.openSlots |> transform num }, Cmd.none )
+
+        GotDay day ->
+            ( { model | today = day }, Cmd.none )
+
+
+
+-- CMD
+
+
+getDay : Task.Task x Day
+getDay =
+    Task.map2 initDay Time.here Time.now
 
 
 initDay : Time.Zone -> Time.Posix -> Day
