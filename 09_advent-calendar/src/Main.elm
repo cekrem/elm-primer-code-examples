@@ -15,7 +15,8 @@ import Set exposing (Set)
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( { today = Advent 2, openSlots = Set.empty }, Cmd.none )
+        -- TODO: Make today be set based on actual date/time:
+        { init = always ( { today = Christmas, openSlots = Set.empty }, Cmd.none )
         , view = view
         , update = update
         , subscriptions = always Sub.none
@@ -51,7 +52,7 @@ adventDays =
 
 allGifts : Dict Int Char
 allGifts =
-    "Video_fra_vårt_bryllup🥳🎄"
+    "That nice dress you like"
         |> String.toList
         |> List.indexedMap (\i char -> ( i + 1, char ))
         |> Dict.fromList
@@ -59,10 +60,6 @@ allGifts =
 
 giftsForToday : Day -> Dict Int Gift
 giftsForToday day =
-    let
-        _ =
-            Debug.log "giftsForToday called" ()
-    in
     case day of
         Other ->
             allGifts
@@ -148,7 +145,7 @@ view { today, openSlots } =
             :: (adventDays
                     |> List.map
                         (\num ->
-                            giftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
+                            viewGiftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
                         )
                )
         )
@@ -187,8 +184,8 @@ viewDay day =
         ]
 
 
-giftSlot : Int -> Bool -> Gift -> msg -> Html msg
-giftSlot number open gift onToggle =
+viewGiftSlot : Int -> Bool -> Gift -> msg -> Html msg
+viewGiftSlot number open gift onToggle =
     let
         dynamicClass =
             if open then
@@ -212,7 +209,7 @@ giftSlot number open gift onToggle =
         , Events.onClick onToggle
         ]
         (if open then
-            [ giftContent gift ]
+            [ viewGiftContent gift ]
 
          else
             [ number |> String.fromInt |> Html.text
@@ -220,8 +217,8 @@ giftSlot number open gift onToggle =
         )
 
 
-giftContent : Gift -> Html msg
-giftContent gift =
+viewGiftContent : Gift -> Html msg
+viewGiftContent gift =
     case gift of
         Available content ->
             Html.span [] [ Html.text <| String.fromChar content ]
