@@ -6,6 +6,7 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Set exposing (Set)
+import Task
 
 
 
@@ -15,12 +16,21 @@ import Set exposing (Set)
 main : Program () Model Msg
 main =
     Browser.element
-        -- TODO: Make today be set based on actual date/time:
-        { init = always ( { today = Advent 10, openSlots = Set.empty }, Cmd.none )
+        { init = init
         , view = view
         , update = update
         , subscriptions = always Sub.none
         }
+
+
+init : () -> ( Model, Cmd Msg )
+init () =
+    ( { today = Advent (Year 2025) 12
+      , openSlots = Set.empty
+      }
+      -- TODO: Somehow get current date
+    , Cmd.none
+    )
 
 
 
@@ -34,15 +44,31 @@ type alias Model =
 
 
 type Day
-    = Advent Int
-    | Christmas
-    | Other
+    = Advent Year Int
+    | Christmas Year
+    | Other Year
+
+
+type Year
+    = Year Int
+
+
+toYear : Day -> Int
+toYear day =
+    case day of
+        Advent (Year y) _ ->
+            y
+
+        Christmas (Year y) ->
+            y
+
+        Other (Year y) ->
+            y
 
 
 type Gift
     = Available Char
     | NotYet
-    | None
 
 
 adventDays : List Int
@@ -61,11 +87,11 @@ allGifts =
 giftsForToday : Day -> Dict Int Gift
 giftsForToday day =
     case day of
-        Other ->
+        Other _ ->
             allGifts
                 |> Dict.map (\_ _ -> NotYet)
 
-        Advent today ->
+        Advent _ today ->
             allGifts
                 |> Dict.map
                     (\d gift ->
@@ -76,7 +102,7 @@ giftsForToday day =
                             NotYet
                     )
 
-        Christmas ->
+        Christmas _ ->
             allGifts
                 |> Dict.map (\_ gift -> Available gift)
 
@@ -86,16 +112,13 @@ giftsForToday day =
 
 
 type Msg
-    = Noop
+    = GotDay Day
     | ToggleGiftSlotOpen Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Noop ->
-            ( model, Cmd.none )
-
         ToggleGiftSlotOpen num ->
             let
                 transform : Int -> Set Int -> Set Int
@@ -107,6 +130,9 @@ update msg model =
                         Set.insert
             in
             ( { model | openSlots = model.openSlots |> transform num }, Cmd.none )
+
+        GotDay day ->
+            ( { model | today = day }, Cmd.none )
 
 
 
@@ -124,7 +150,7 @@ view { today, openSlots } =
         getGift day =
             gifts
                 |> Dict.get day
-                |> Maybe.withDefault None
+                |> Maybe.withDefault NotYet
 
         isOpen : Int -> Bool
         isOpen day =
@@ -140,7 +166,7 @@ view { today, openSlots } =
         , Attr.class "bg-[#753D92]"
         , Attr.class "overflow-y-auto"
         ]
-        (viewHeader
+        (viewHeader today
             :: viewDay today
             :: (adventDays
                     |> List.map
@@ -151,12 +177,13 @@ view { today, openSlots } =
         )
 
 
-viewHeader : Html msg
-viewHeader =
+viewHeader : Day -> Html msg
+viewHeader day =
     Html.div
         [ Attr.class "w-full sm:h-[16vmin] text-center text-white"
         ]
-        [ Html.text "Advent 2025" ]
+        [ Html.text <| "Advent" ++ String.fromInt (toYear day)
+        ]
 
 
 viewDay : Day -> Html msg
@@ -171,15 +198,15 @@ viewDay day =
         ]
         [ Html.text <|
             case day of
-                Christmas ->
+                Christmas _ ->
                     "Christmas🎄"
 
-                Advent num ->
+                Advent _ num ->
                     num
                         |> String.fromInt
                         |> String.append "December "
 
-                Other ->
+                Other _ ->
                     "Wait until December!"
         ]
 
@@ -232,7 +259,4 @@ viewGiftContent gift =
             Html.span [] [ Html.text <| String.fromChar content ]
 
         NotYet ->
-            Html.span [ Attr.class "opacity-30" ] [ Html.text "?" ]
-
-        None ->
-            Html.span [ Attr.class "opacity-30" ] [ Html.text "?!" ]
+            Html.text ""

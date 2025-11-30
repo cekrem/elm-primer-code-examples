@@ -44,16 +44,35 @@ type alias Model =
 
 
 type Day
-    = Advent Int
-    | Christmas
-    | Other
+    = Advent Year Int
+    | Christmas Year
+    | Other Year
     | Unset
+
+
+type Year
+    = Year Int
+
+
+toYear : Day -> Maybe Int
+toYear day =
+    case day of
+        Advent (Year y) _ ->
+            Just y
+
+        Christmas (Year y) ->
+            Just y
+
+        Other (Year y) ->
+            Just y
+
+        Unset ->
+            Nothing
 
 
 type Gift
     = Available Char
     | NotYet
-    | None
 
 
 adventDays : List Int
@@ -76,11 +95,11 @@ giftsForToday day =
             allGifts
                 |> Dict.map (\_ _ -> NotYet)
 
-        Other ->
+        Other _ ->
             allGifts
                 |> Dict.map (\_ _ -> NotYet)
 
-        Advent today ->
+        Advent _ today ->
             allGifts
                 |> Dict.map
                     (\d gift ->
@@ -91,7 +110,7 @@ giftsForToday day =
                             NotYet
                     )
 
-        Christmas ->
+        Christmas _ ->
             allGifts
                 |> Dict.map (\_ gift -> Available gift)
 
@@ -139,6 +158,10 @@ initDay zone time =
         month : Time.Month
         month =
             Time.toMonth zone time
+
+        year : Int
+        year =
+            Time.toYear zone time
     in
     case month of
         Time.Dec ->
@@ -148,13 +171,13 @@ initDay zone time =
                     Time.toDay zone time
             in
             if day > 23 then
-                Christmas
+                Christmas (Year year)
 
             else
-                Advent day
+                Advent (Year year) day
 
         _ ->
-            Other
+            Other (Year year)
 
 
 
@@ -172,7 +195,7 @@ view { today, openSlots } =
         getGift day =
             gifts
                 |> Dict.get day
-                |> Maybe.withDefault None
+                |> Maybe.withDefault NotYet
 
         isOpen : Int -> Bool
         isOpen day =
@@ -188,7 +211,7 @@ view { today, openSlots } =
         , Attr.class "bg-[#753D92]"
         , Attr.class "overflow-y-auto"
         ]
-        (viewHeader
+        (viewHeader today
             :: viewDay today
             :: (adventDays
                     |> List.map
@@ -199,12 +222,21 @@ view { today, openSlots } =
         )
 
 
-viewHeader : Html msg
-viewHeader =
+viewHeader : Day -> Html msg
+viewHeader day =
     Html.div
         [ Attr.class "w-full sm:h-[16vmin] text-center text-white"
         ]
-        [ Html.text "Advent 2025" ]
+        [ Html.text
+            (day
+                |> toYear
+                |> Maybe.map
+                    (\year ->
+                        "Advent " ++ String.fromInt year
+                    )
+                |> Maybe.withDefault ""
+            )
+        ]
 
 
 viewDay : Day -> Html msg
@@ -219,15 +251,15 @@ viewDay day =
         ]
         [ Html.text <|
             case day of
-                Christmas ->
+                Christmas _ ->
                     "Christmas🎄"
 
-                Advent num ->
+                Advent _ num ->
                     num
                         |> String.fromInt
                         |> String.append "December "
 
-                Other ->
+                Other _ ->
                     "Wait until December!"
 
                 Unset ->
@@ -283,7 +315,4 @@ viewGiftContent gift =
             Html.span [] [ Html.text <| String.fromChar content ]
 
         NotYet ->
-            Html.span [ Attr.class "opacity-30" ] [ Html.text "?" ]
-
-        None ->
-            Html.span [ Attr.class "opacity-30" ] [ Html.text "?!" ]
+            Html.text ""
