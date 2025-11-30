@@ -182,7 +182,7 @@ viewHeader day =
     Html.div
         [ Attr.class "w-full sm:h-[16vmin] text-center text-white"
         ]
-        [ Html.text <| "Advent" ++ String.fromInt (toYear day)
+        [ Html.text <| "Advent " ++ String.fromInt (toYear day)
         ]
 
 
