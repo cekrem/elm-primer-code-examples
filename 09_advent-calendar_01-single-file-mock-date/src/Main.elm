@@ -137,7 +137,7 @@ view { today, openSlots } =
         , Attr.class "p-[4vmin]"
         , Attr.class "text-[16vw] sm:text-[8vmin]"
         , Attr.class "font-mono font-bold"
-        , Attr.class "bg-sky-300"
+        , Attr.class "bg-[#753D92]"
         , Attr.class "overflow-y-auto"
         ]
         (viewHeader
@@ -154,7 +154,7 @@ view { today, openSlots } =
 viewHeader : Html msg
 viewHeader =
     Html.div
-        [ Attr.class "w-full sm:h-[16vmin] text-center underline"
+        [ Attr.class "w-full sm:h-[16vmin] text-center text-white"
         ]
         [ Html.text "Advent 2025" ]
 
@@ -162,9 +162,9 @@ viewHeader =
 viewDay : Day -> Html msg
 viewDay day =
     Html.div
-        [ Attr.class "w-2/3 sm:w-[52vmin] sm:h-[16vmin]"
+        [ Attr.class "w-3/4 sm:w-[88vmin] sm:h-[16vmin]"
         , Attr.class "flex items-center justify-center"
-        , Attr.class "bg-green-300"
+        , Attr.class "bg-[#D23B3B] text-white"
         , Attr.class "rounded-xl"
         , Attr.class "text-center"
         , Attr.class "text-[0.5em]"
@@ -180,34 +180,42 @@ viewDay day =
                         |> String.append "December "
 
                 Other ->
-                    "Wrong month! ❌"
+                    "Wait until December!"
         ]
 
 
 viewGiftSlot : Int -> Bool -> Gift -> msg -> Html msg
 viewGiftSlot number open gift onToggle =
     let
-        dynamicClass =
-            if open then
-                Attr.class "text-red-500 bg-white border-red-700"
+        clickable : List (Html.Attribute msg)
+        clickable =
+            [ Events.onClick onToggle
+            , Attr.class "hover:scale-110"
+            , Attr.class "cursor-pointer"
+            ]
 
-            else
-                Attr.class "text-white bg-red-500 border-transparent"
+        dynamicAttrs : List (Html.Attribute msg)
+        dynamicAttrs =
+            case ( open, gift ) of
+                ( True, _ ) ->
+                    Attr.class "text-[#F8CAFF] bg-[#2B0A36] border-[#D23B3B]" :: clickable
+
+                ( _, Available _ ) ->
+                    Attr.class "text-white bg-[#44134C] border-transparent" :: clickable
+
+                _ ->
+                    [ Attr.class "text-[#372D3B] bg-[#AC85B3] border-transparent" ]
     in
     Html.div
-        [ Attr.class "flex justify-center items-center"
-        , Attr.class "h-[24vh] w-1/3 sm:size-[16vmin]"
-        , Attr.class "rounded-xl"
-        , Attr.class "select-none"
-        , Attr.class "cursor-pointer"
-        , Attr.class "border-dashed border-4"
-        , Attr.class "hover:scale-110"
-
-        -- Dynamic stuff
-        , Attr.class "transition-all"
-        , dynamicClass
-        , Events.onClick onToggle
-        ]
+        ([ Attr.class "flex justify-center items-center"
+         , Attr.class "h-[24vh] w-1/3 sm:size-[16vmin]"
+         , Attr.class "rounded-xl"
+         , Attr.class "select-none"
+         , Attr.class "border-dashed border-4"
+         , Attr.class "transition-all"
+         ]
+            ++ dynamicAttrs
+        )
         (if open then
             [ viewGiftContent gift ]
 

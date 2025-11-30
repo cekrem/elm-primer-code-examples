@@ -249,7 +249,7 @@ viewGiftSlot number open gift onToggle =
         dynamicAttrs =
             case ( open, gift ) of
                 ( True, _ ) ->
-                    Attr.class "text-[#F8CAFF] bg-[#2B0A36] border-red-700" :: clickable
+                    Attr.class "text-[#F8CAFF] bg-[#2B0A36] border-[#D23B3B]" :: clickable
 
                 ( _, Available _ ) ->
                     Attr.class "text-white bg-[#44134C] border-transparent" :: clickable
