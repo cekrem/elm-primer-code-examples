@@ -7,7 +7,11 @@ import Time
 
 type State
     = Idle
-    | Entry Int
+    | Snowing (List SnowFlake)
+
+
+type SnowFlake
+    = Entry Int
     | Middle Int
     | End Int
 
@@ -17,94 +21,115 @@ initState =
     Idle
 
 
-next : Int -> State -> State
-next seed progress =
-    case progress of
+nextState : Int -> State -> State
+nextState globalSeed state =
+    case state of
+        Snowing snowFlakes ->
+            Snowing
+                (snowFlakes
+                    |> List.indexedMap (\i snow -> snow |> nextSnowFlake (globalSeed * i))
+                )
+
         Idle ->
-            Entry seed
+            Snowing
+                (List.repeat 24 ()
+                    |> List.indexedMap
+                        (\i () ->
+                            let
+                                snowSeed =
+                                    globalSeed * i
+                            in
+                            case snowSeed |> modBy 3 of
+                                0 ->
+                                    Entry snowSeed
 
-        Entry _ ->
-            Middle seed
+                                1 ->
+                                    Middle snowSeed
 
-        Middle _ ->
-            End seed
+                                _ ->
+                                    End snowSeed
+                        )
+                )
 
-        End _ ->
-            Entry seed
+
+nextSnowFlake : Int -> SnowFlake -> SnowFlake
+nextSnowFlake seed progress =
+    case progress of
+        Entry prev ->
+            Middle <| seed + prev
+
+        Middle prev ->
+            End <| seed + prev
+
+        End prev ->
+            Entry <| seed + prev
 
 
-transposedData : Int -> Int -> { degrees : Int, offset : Float, translate : Int }
-transposedData index seed =
+variations : Int -> { degrees : Int, offset : Float }
+variations seed =
     let
         offset =
             seed
-                |> (*) (1 + index)
                 |> modBy 500
                 |> toFloat
                 |> (*) (1 / 499)
 
         degrees =
             seed
-                |> (*) (2 + index)
                 |> modBy 360
-
-        translate =
-            (toFloat index * 0.1 * offset * toFloat degrees) |> floor
     in
-    { offset = offset, degrees = degrees, translate = translate }
+    { offset = offset, degrees = degrees }
 
 
 view : State -> Html msg
 view state =
+    let
+        snowFlakes =
+            case state of
+                Idle ->
+                    []
+
+                Snowing s ->
+                    s
+    in
     Html.div
         [ Attr.class "fixed top-0 left-0 size-full pointer-events-none z-99"
         ]
-        (List.repeat 12 ()
-            |> List.indexedMap
-                (\index () ->
-                    snowFlake index state
-                )
-        )
+        (snowFlakes |> List.indexedMap snowFlake)
 
 
-snowFlake : Int -> State -> Html msg
-snowFlake index state =
+snowFlake : Int -> SnowFlake -> Html msg
+snowFlake index snowState =
     let
         pos =
-            Attr.class <| "left-" ++ String.fromInt index ++ "/12"
+            Attr.class <| "left-" ++ String.fromInt (index |> modBy 12) ++ "/12"
 
         attrs =
-            case state of
-                Idle ->
-                    [ Attr.class "hidden" ]
-
+            case snowState of
                 Entry seed ->
-                    transposedData index seed
-                        |> (\{ offset, degrees, translate } ->
+                    variations seed
+                        |> (\{ offset, degrees } ->
                                 [ Attr.class "top-0 opacity-0"
                                 , Attr.class <| "rotate-" ++ String.fromInt degrees
                                 , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                , Attr.class <| "p-[" ++ String.fromInt translate ++ "%]"
                                 ]
                            )
 
                 Middle seed ->
-                    transposedData index seed
-                        |> (\{ offset, degrees, translate } ->
-                                [ Attr.class "top-60"
+                    variations seed
+                        |> (\{ offset, degrees } ->
+                                [ Attr.class "top-100"
                                 , Attr.class <| "rotate-" ++ String.fromInt degrees
                                 , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                , Attr.class <| "mt-[" ++ String.fromInt translate ++ "vmax]"
                                 ]
                            )
 
                 End seed ->
-                    transposedData index seed
-                        |> (\{ offset, degrees, translate } ->
-                                [ Attr.class "top-140 opacity-0"
+                    variations seed
+                        |> (\{ offset, degrees } ->
+                                [ Attr.class "top-200 opacity-0"
                                 , Attr.class <| "rotate-" ++ String.fromInt degrees
                                 , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                , Attr.class <| "mt-[" ++ String.fromInt translate ++ "%]"
                                 ]
                            )
     in
@@ -120,7 +145,7 @@ snowFlake index state =
 
 stateFromTime : State -> Time.Posix -> State
 stateFromTime prev timestamp =
-    prev |> next (Time.posixToMillis timestamp)
+    prev |> nextState (Time.posixToMillis timestamp)
 
 
 subscription : (State -> msg) -> State -> Sub msg
