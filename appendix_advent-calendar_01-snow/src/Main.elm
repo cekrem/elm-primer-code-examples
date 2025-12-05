@@ -19,7 +19,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = always (Snow.subscription GotSnow)
+        , subscriptions = \model -> Snow.subscription GotSnow model.snow
         }
 
 
@@ -45,7 +45,7 @@ allGifts =
 type alias Model =
     { today : Calendar.Day
     , openSlots : Set Int
-    , snow : Snow.Progress
+    , snow : Snow.State
     }
 
 
@@ -55,7 +55,7 @@ type alias Model =
 
 type Msg
     = GotDay Calendar.Day
-    | GotSnow Snow.Progress
+    | GotSnow Snow.State
     | ToggleGiftSlotOpen Int
 
 
