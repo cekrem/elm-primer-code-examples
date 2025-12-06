@@ -1,19 +1,13 @@
 module Snow exposing (State, initState, subscription, view)
 
-import Html exposing (Html, progress)
+import Browser.Events
+import Html exposing (Html)
 import Html.Attributes as Attr
-import Time
 
 
 type State
     = Idle
-    | Snowing (List SnowFlake)
-
-
-type SnowFlake
-    = Entry Int
-    | Middle Int
-    | End Int
+    | Snowing Int
 
 
 initState : State
@@ -21,133 +15,150 @@ initState =
     Idle
 
 
-nextState : Int -> State -> State
-nextState globalSeed state =
+nextState : State -> State
+nextState state =
     case state of
-        Snowing snowFlakes ->
-            Snowing
-                (snowFlakes
-                    |> List.indexedMap (\i snow -> snow |> nextSnowFlake (globalSeed * i))
-                )
+        Snowing counter ->
+            Snowing (counter + 1)
 
         Idle ->
-            Snowing
-                (List.repeat 24 ()
-                    |> List.indexedMap
-                        (\i () ->
-                            let
-                                snowSeed =
-                                    globalSeed * i
-                            in
-                            case snowSeed |> modBy 3 of
-                                0 ->
-                                    Entry snowSeed
-
-                                1 ->
-                                    Middle snowSeed
-
-                                _ ->
-                                    End snowSeed
-                        )
-                )
-
-
-nextSnowFlake : Int -> SnowFlake -> SnowFlake
-nextSnowFlake seed progress =
-    case progress of
-        Entry prev ->
-            Middle <| seed + prev
-
-        Middle prev ->
-            End <| seed + prev
-
-        End prev ->
-            Entry <| seed + prev
-
-
-variations : Int -> { degrees : Int, offset : Float }
-variations seed =
-    let
-        offset =
-            seed
-                |> modBy 500
-                |> toFloat
-                |> (*) (1 / 499)
-
-        degrees =
-            seed
-                |> modBy 360
-    in
-    { offset = offset, degrees = degrees }
+            Snowing 0
 
 
 view : State -> Html msg
 view state =
     let
-        snowFlakes =
+        counter =
             case state of
                 Idle ->
-                    []
+                    0
 
-                Snowing s ->
-                    s
+                Snowing c ->
+                    c
     in
     Html.div
-        [ Attr.class "fixed top-0 left-0 size-full pointer-events-none z-99"
-        ]
-        (snowFlakes |> List.indexedMap snowFlake)
+        [ Attr.class "fixed top-0 left-0 size-full pointer-events-none z-99" ]
+        (List.range 0 23 |> List.map (snowFlake counter))
 
 
-snowFlake : Int -> SnowFlake -> Html msg
-snowFlake index snowState =
+
+-- SNOWFLAKE
+
+
+snowFlake : Int -> Int -> Html msg
+snowFlake counter index =
     let
-        pos =
-            Attr.class <| "left-" ++ String.fromInt (index |> modBy 12) ++ "/12"
-
-        attrs =
-            case snowState of
-                Entry seed ->
-                    variations seed
-                        |> (\{ offset, degrees } ->
-                                [ Attr.class "top-0 opacity-0"
-                                , Attr.class <| "rotate-" ++ String.fromInt degrees
-                                , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                ]
-                           )
-
-                Middle seed ->
-                    variations seed
-                        |> (\{ offset, degrees } ->
-                                [ Attr.class "top-100"
-                                , Attr.class <| "rotate-" ++ String.fromInt degrees
-                                , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                ]
-                           )
-
-                End seed ->
-                    variations seed
-                        |> (\{ offset, degrees } ->
-                                [ Attr.class "top-200 opacity-0"
-                                , Attr.class <| "rotate-" ++ String.fromInt degrees
-                                , Attr.class <| "scale-[" ++ String.fromFloat (offset * 100) ++ "%]"
-                                ]
-                           )
+        config =
+            snowFlakeConfig counter index
     in
     Html.div
-        (Attr.class "absolute rounded-full mt-[-10vh] h-[10vh] line-height-1"
-            :: Attr.class "text-white text-[10vh]"
-            :: Attr.class "transition-all duration-500 ease-linear"
-            :: pos
-            :: attrs
-        )
+        [ Attr.class "absolute rounded-full h-[10vh] line-height-1 text-white text-[10vh]"
+        , Attr.style "left" (pct config.x)
+        , Attr.style "top" (vh config.y)
+        , Attr.style "transform" (transform config)
+        , Attr.style "opacity" (String.fromFloat config.opacity)
+        ]
         [ Html.text "*" ]
 
 
-stateFromTime : State -> Time.Posix -> State
-stateFromTime prev timestamp =
-    prev |> nextState (Time.posixToMillis timestamp)
+type alias SnowFlakeConfig =
+    { x : Float
+    , y : Float
+    , drift : Float
+    , rotation : Float
+    , scale : Float
+    , opacity : Float
+    }
+
+
+snowFlakeConfig : Int -> Int -> SnowFlakeConfig
+snowFlakeConfig counter index =
+    let
+        seed =
+            index * 1337 + 1001
+
+        speed =
+            0.8 + vary seed 40 / 100
+
+        phase =
+            vary seed 200
+
+        progress =
+            loop 220 (toFloat counter * speed + phase)
+
+        y =
+            progress - 10
+
+        x =
+            toFloat index / 24 * 100
+
+        drift =
+            sin (progress / 30) * (vary seed 50 + 20)
+
+        rotation =
+            progress * 2
+
+        scale =
+            0.5 + vary seed 500 / 500 * 0.5
+
+        opacity =
+            if y < 0 then
+                1 + y / 10
+
+            else if y > 200 then
+                1 - (y - 200) / 10
+
+            else
+                scale
+    in
+    { x = x
+    , y = y
+    , drift = drift
+    , rotation = rotation
+    , scale = scale
+    , opacity = opacity
+    }
+
+
+
+-- HELPERS
+
+
+vary : Int -> Int -> Float
+vary seed range =
+    toFloat (modBy range seed)
+
+
+loop : Int -> Float -> Float
+loop range value =
+    let
+        cycles =
+            floor (value / toFloat range)
+    in
+    value - toFloat (cycles * range)
+
+
+pct : Float -> String
+pct value =
+    String.fromFloat value ++ "%"
+
+
+vh : Float -> String
+vh value =
+    String.fromFloat value ++ "vh"
+
+
+transform : SnowFlakeConfig -> String
+transform config =
+    "translateX("
+        ++ String.fromFloat config.drift
+        ++ "px) rotate("
+        ++ String.fromFloat config.rotation
+        ++ "deg) scale("
+        ++ String.fromFloat config.scale
+        ++ ")"
 
 
 subscription : (State -> msg) -> State -> Sub msg
 subscription toMsg state =
-    Time.every 500 (stateFromTime state >> toMsg)
+    Browser.Events.onAnimationFrame (\_ -> toMsg (nextState state))
