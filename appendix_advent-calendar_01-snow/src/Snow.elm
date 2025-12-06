@@ -3,62 +3,51 @@ module Snow exposing (State, initState, subscription, view)
 import Browser.Events
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Lazy as Lazy exposing (lazy2)
 
 
 type State
-    = Idle
-    | Snowing Int
+    = Snowing Int
 
 
 initState : State
 initState =
-    Idle
+    Snowing 0
 
 
 nextState : State -> State
-nextState state =
-    case state of
-        Snowing counter ->
-            Snowing (counter + 1)
-
-        Idle ->
-            Snowing 0
+nextState (Snowing counter) =
+    Snowing (counter + 1)
 
 
 view : State -> Html msg
-view state =
-    let
-        counter =
-            case state of
-                Idle ->
-                    0
-
-                Snowing c ->
-                    c
-    in
+view (Snowing counter) =
     Html.div
         [ Attr.class "fixed top-0 left-0 size-full pointer-events-none z-99" ]
         (List.range 0 23 |> List.map (snowFlake counter))
 
 
 
--- SNOWFLAKE
+-- SNOW FLAKE
 
 
 snowFlake : Int -> Int -> Html msg
-snowFlake counter index =
-    let
-        config =
-            snowFlakeConfig counter index
-    in
-    Html.div
-        [ Attr.class "absolute rounded-full h-[10vh] line-height-1 text-white text-[10vh]"
-        , Attr.style "left" (pct config.x)
-        , Attr.style "top" (vh config.y)
-        , Attr.style "transform" (transform config)
-        , Attr.style "opacity" (String.fromFloat config.opacity)
-        ]
-        [ Html.text "*" ]
+snowFlake =
+    Lazy.lazy2
+        (\counter index ->
+            let
+                config =
+                    snowFlakeConfig counter index
+            in
+            Html.div
+                [ Attr.class "absolute rounded-full h-[10vh] line-height-1 text-white text-[10vh]"
+                , Attr.style "left" (pct config.x)
+                , Attr.style "top" (vh config.y)
+                , Attr.style "transform" (transform config)
+                , Attr.style "opacity" (String.fromFloat config.opacity)
+                ]
+                [ Html.text "*" ]
+        )
 
 
 type alias SnowFlakeConfig =
@@ -102,14 +91,16 @@ snowFlakeConfig counter index =
             0.5 + vary seed 500 / 500 * 0.5
 
         opacity =
-            if y < 0 then
+            (if y < 0 then
                 1 + y / 10
 
-            else if y > 200 then
+             else if y > 200 then
                 1 - (y - 200) / 10
 
-            else
-                scale
+             else
+                1
+            )
+                * scale
     in
     { x = x
     , y = y

@@ -35,7 +35,7 @@ init () =
 
 allGifts : Calendar.Gifts all
 allGifts =
-    Calendar.initGifts "That dress you like"
+    Calendar.initGifts "Video fra vårt bryllup🥳🎄"
 
 
 
