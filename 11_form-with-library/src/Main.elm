@@ -90,7 +90,7 @@ normalizePhone =
 
 feedbackForm : Form.Form Msg
 feedbackForm =
-    Form.new [ Attr.class "feedback-form" ]
+    Form.new [ Attr.class "feedback-form", Attr.id "feedback-form" ]
         [ Form.input "name" "Full Name"
             |> Form.withRequired True
             |> Form.withTransformer String.trim
@@ -120,6 +120,8 @@ view model =
         [ Html.h2 [] [ Html.text "Send Feedback" ]
         , feedbackForm
             |> Form.build model.formValues FormChanged FormSubmitted
+        , Html.button [ Attr.type_ "submit", Attr.form "feedback-form" ]
+            [ Html.text "Submit" ]
         , viewSubmitted model.submitted
         ]
 
