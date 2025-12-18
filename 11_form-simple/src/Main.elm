@@ -23,16 +23,20 @@ type Category
 
 type alias Model =
     { email : String
+    , emailError : Maybe String
     , category : Category
     , message : String
+    , messageError : Maybe String
     }
 
 
 initialModel : Model
 initialModel =
     { email = ""
+    , emailError = Nothing
     , category = GeneralFeedback
     , message = ""
+    , messageError = Nothing
     }
 
 
@@ -47,16 +51,43 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         UpdateEmail email ->
-            { model | email = email }
+            { model
+                | email = email
+                , emailError = validateEmail email
+            }
 
         UpdateCategory category ->
             { model | category = category }
 
         UpdateMessage message ->
-            { model | message = message }
+            { model
+                | message = message
+                , messageError = validateMessage message
+            }
 
         Submit ->
             Debug.log "submit" model
+
+
+validateEmail : String -> Maybe String
+validateEmail email =
+    if String.isEmpty email then
+        Just "Email is required"
+
+    else if not (String.contains "@" email) then
+        Just "Please enter a valid email"
+
+    else
+        Nothing
+
+
+validateMessage : String -> Maybe String
+validateMessage message =
+    if String.length message < 10 then
+        Just "Message must be at least 10 characters"
+
+    else
+        Nothing
 
 
 view : Model -> Html.Html Msg
@@ -69,8 +100,22 @@ view model =
                 [ Attributes.type_ "email"
                 , Attributes.value model.email
                 , Events.onInput UpdateEmail
+                , Attributes.class
+                    (if model.emailError /= Nothing then
+                        "error"
+
+                     else
+                        ""
+                    )
                 ]
                 []
+            , case model.emailError of
+                Just err ->
+                    Html.span [ Attributes.class "error-message" ]
+                        [ Html.text err ]
+
+                Nothing ->
+                    Html.text ""
             ]
         , Html.div []
             [ Html.label [] [ Html.text "Category" ]
@@ -92,8 +137,22 @@ view model =
             , Html.textarea
                 [ Attributes.value model.message
                 , Events.onInput UpdateMessage
+                , Attributes.class
+                    (if model.messageError /= Nothing then
+                        "error"
+
+                     else
+                        ""
+                    )
                 ]
                 []
+            , case model.messageError of
+                Just err ->
+                    Html.span [ Attributes.class "error-message" ]
+                        [ Html.text err ]
+
+                Nothing ->
+                    Html.text ""
             ]
         , Html.button [ Events.onClick Submit ] [ Html.text "Submit" ]
         ]
