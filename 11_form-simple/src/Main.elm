@@ -1,8 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Html
-import Html.Attributes as Attributes
+import Html exposing (Html)
+import Html.Attributes as Attr
 import Html.Events as Events
 
 
@@ -90,72 +90,88 @@ validateMessage message =
         Nothing
 
 
-view : Model -> Html.Html Msg
+view : Model -> Html Msg
 view model =
-    Html.div []
-        [ Html.h2 [] [ Html.text "Send Feedback" ]
-        , Html.div []
-            [ Html.label [] [ Html.text "Email" ]
-            , Html.input
-                [ Attributes.type_ "email"
-                , Attributes.value model.email
-                , Events.onInput UpdateEmail
-                , Attributes.class
-                    (if model.emailError /= Nothing then
-                        "error"
-
-                     else
-                        ""
-                    )
-                ]
-                []
-            , case model.emailError of
-                Just err ->
-                    Html.span [ Attributes.class "error-message" ]
-                        [ Html.text err ]
-
-                Nothing ->
-                    Html.text ""
-            ]
-        , Html.div []
-            [ Html.label [] [ Html.text "Category" ]
-            , Html.select
-                [ Events.onInput categoryFromString ]
-                [ Html.option
-                    [ Attributes.selected (model.category == BugReport) ]
-                    [ Html.text "Bug Report" ]
-                , Html.option
-                    [ Attributes.selected (model.category == FeatureRequest) ]
-                    [ Html.text "Feature Request" ]
-                , Html.option
-                    [ Attributes.selected (model.category == GeneralFeedback) ]
-                    [ Html.text "General Feedback" ]
-                ]
-            ]
-        , Html.div []
-            [ Html.label [] [ Html.text "Message" ]
-            , Html.textarea
-                [ Attributes.value model.message
-                , Events.onInput UpdateMessage
-                , Attributes.class
-                    (if model.messageError /= Nothing then
-                        "error"
-
-                     else
-                        ""
-                    )
-                ]
-                []
-            , case model.messageError of
-                Just err ->
-                    Html.span [ Attributes.class "error-message" ]
-                        [ Html.text err ]
-
-                Nothing ->
-                    Html.text ""
-            ]
-        , Html.button [ Events.onClick Submit ] [ Html.text "Submit" ]
+    Html.form
+        [ Events.onSubmit Submit
+        , Attr.class "flex flex-col gap-4 max-w-md mx-auto p-6"
         ]
+        [ Html.h2
+            [ Attr.class "text-2xl font-bold" ]
+            [ Html.text "Send Feedback" ]
+        , Html.label
+            [ Attr.class "font-medium" ]
+            [ Html.text "Email" ]
+        , Html.input
+            [ Attr.type_ "email"
+            , Attr.value model.email
+            , Events.onInput UpdateEmail
+            , Attr.placeholder "you@example.com"
+            , Attr.class
+                (inputClass ++ errorBorder model.emailError)
+            ]
+            []
+        , viewError model.emailError
+        , Html.label
+            [ Attr.class "font-medium" ]
+            [ Html.text "Category" ]
+        , Html.select
+            [ Events.onInput categoryFromString
+            , Attr.class inputClass
+            ]
+            [ Html.option
+                [ Attr.selected (model.category == BugReport) ]
+                [ Html.text "Bug Report" ]
+            , Html.option
+                [ Attr.selected (model.category == FeatureRequest) ]
+                [ Html.text "Feature Request" ]
+            , Html.option
+                [ Attr.selected (model.category == GeneralFeedback) ]
+                [ Html.text "General Feedback" ]
+            ]
+        , Html.label
+            [ Attr.class "font-medium" ]
+            [ Html.text "Message" ]
+        , Html.textarea
+            [ Attr.value model.message
+            , Events.onInput UpdateMessage
+            , Attr.placeholder "Tell us what's on your mind..."
+            , Attr.class
+                (inputClass ++ errorBorder model.messageError)
+            ]
+            []
+        , viewError model.messageError
+        , Html.button
+            [ Attr.class "bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700" ]
+            [ Html.text "Submit" ]
+        ]
+
+
+inputClass : String
+inputClass =
+    "border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+
+errorBorder : Maybe String -> String
+errorBorder maybeError =
+    case maybeError of
+        Just _ ->
+            " border-red-500"
+
+        Nothing ->
+            " border-gray-300"
+
+
+viewError : Maybe String -> Html msg
+viewError maybeError =
+    case maybeError of
+        Just err ->
+            Html.span
+                [ Attr.class "text-red-500 text-sm -mt-2" ]
+                [ Html.text err ]
+
+        Nothing ->
+            Html.text ""
 
 
 categoryFromString : String -> Msg
