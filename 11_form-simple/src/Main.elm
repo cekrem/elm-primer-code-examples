@@ -80,5 +80,5 @@ view model =
             , Events.onInput UpdateMessage
             ]
             []
-        , Html.button [] [ Html.text "Submit" ]
+        , Html.button [ Attr.type_ "submit" ] [ Html.text "Submit" ]
         ]
