@@ -73,4 +73,4 @@ emailValidator email =
 
 errAttrs : List (Html.Attribute msg)
 errAttrs =
-    [ Attr.class "bg-red-500", Attr.attribute "aria-invalid" "true" ]
+    [ Attr.class "border-1 border-red-500 focus:ring-red-500", Attr.attribute "aria-invalid" "true" ]
