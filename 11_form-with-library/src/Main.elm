@@ -50,6 +50,7 @@ view model =
             |> Form.withPlaceholder "Name"
         , Form.input "email" "Email"
             |> Form.withPlaceholder "Email"
+            |> Form.withValidator emailValidator
         , Form.input "phone" "Phone"
             |> Form.withPlaceholder "Phone"
             |> Form.withType "tel"
@@ -59,3 +60,17 @@ view model =
         ]
         |> Form.withSubmitButton "Submit" []
         |> Form.build model.formValues FormChanged Submit
+
+
+emailValidator : String -> Result (List (Html.Attribute msg)) ()
+emailValidator email =
+    if email == "" || String.contains "@" email then
+        Ok ()
+
+    else
+        Err errAttrs
+
+
+errAttrs : List (Html.Attribute msg)
+errAttrs =
+    [ Attr.class "bg-red-500", Attr.attribute "aria-invalid" "true" ]
