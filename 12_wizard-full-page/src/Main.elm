@@ -2,7 +2,9 @@ module Main exposing (main)
 
 import Api
 import Browser
+import Bug
 import Dict
+import Feature
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
@@ -31,9 +33,9 @@ main =
 type Model
     = Closed
     | Welcome
-      -- | ReportBug Bug.Model
-      -- | RequestFeature Feature.Model
-    | Confirm Model Api.Submittable
+    | ReportBug Bug.Model
+    | RequestFeature Feature.Model
+    | Confirm Api.Submittable
     | ThankYou
 
 
@@ -43,17 +45,25 @@ type Model
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        OpenWizard ->
+    case ( msg, model ) of
+        ( OpenWizard, _ ) ->
             ( Welcome, Cmd.none )
 
-        RollbackState rollbackTo ->
-            ( rollbackTo, Cmd.none )
+        ( StartBugReport, _ ) ->
+            ( ReportBug Bug.init, Cmd.none )
 
-        ConfirmData data ->
-            ( Confirm model data, Cmd.none )
+        ( StartFeatureRequest, _ ) ->
+            ( RequestFeature Feature.init, Cmd.none )
 
-        Submit data ->
+        ( GotBugMsg bugMsg, ReportBug bugModel ) ->
+            Bug.update bugMsg bugModel
+                |> updateWith ReportBug
+
+        ( GotFeatureMsg featureMsg, RequestFeature featureModel ) ->
+            Feature.update featureMsg featureModel
+                |> updateWith RequestFeature
+
+        ( Submit data, _ ) ->
             ( ThankYou
             , Cmd.batch
                 [ Api.submit data
@@ -61,16 +71,29 @@ update msg model =
                 ]
             )
 
-        CloseWizard ->
+        ( CloseWizard, _ ) ->
             ( Closed, Cmd.none )
+
+        ( _, _ ) ->
+            ( model, Cmd.none )
+
+
+updateWith : (childModel -> Model) -> Api.Step childModel -> ( Model, Cmd Msg )
+updateWith toModel step =
+    case step of
+        Api.Continue childModel ->
+            ( toModel childModel, Cmd.none )
+
+        Api.Done data ->
+            ( Confirm data, Cmd.none )
 
 
 type Msg
     = OpenWizard
-      --  | ReportBug
-      --  | RequestFeature
-    | RollbackState Model
-    | ConfirmData Api.Submittable
+    | StartBugReport
+    | StartFeatureRequest
+    | GotBugMsg Bug.Msg
+    | GotFeatureMsg Feature.Msg
     | Submit Api.Submittable
     | CloseWizard
 
@@ -88,8 +111,14 @@ view model =
         Welcome ->
             viewWelcomeScreen
 
-        Confirm prev data ->
-            viewConfirmScreen (RollbackState prev) (Submit data) data
+        ReportBug bugModel ->
+            Bug.view bugModel |> Html.map GotBugMsg
+
+        RequestFeature featureModel ->
+            Feature.view featureModel |> Html.map GotFeatureMsg
+
+        Confirm data ->
+            viewConfirmScreen data
 
         ThankYou ->
             viewThankYouScreen
@@ -100,26 +129,14 @@ viewWelcomeScreen =
     Html.div []
         [ Html.span [] [ Html.text "Please choose feedback type:" ]
         , viewRow
-            [ viewButton OpenWizard "Report bug (TODO)"
-            , viewButton OpenWizard "Request feature (TODO)"
-            , viewButton (ConfirmData mockConfirmData) "Confirm data (mock)"
+            [ viewButton StartBugReport "Report bug"
+            , viewButton StartFeatureRequest "Request feature"
             ]
         ]
 
 
-mockConfirmData : Dict.Dict String String
-mockConfirmData =
-    [ ( "Type", "Bug report (mocked)" )
-    , ( "Some data", "Yes" )
-    , ( "Some data", "Yes" )
-    , ( "Some data", "Yes" )
-    , ( "Some other data", "No" )
-    ]
-        |> Dict.fromList
-
-
-viewConfirmScreen : Msg -> Msg -> Api.Submittable -> Html Msg
-viewConfirmScreen rollback submit data =
+viewConfirmScreen : Api.Submittable -> Html Msg
+viewConfirmScreen data =
     Html.div []
         [ Html.text "You entered the following data"
         , Html.ul []
@@ -134,9 +151,7 @@ viewConfirmScreen rollback submit data =
                     )
             )
         , viewRow
-            [ viewButton submit "Submit"
-            , viewButton rollback "Go back"
-            ]
+            [ viewButton (Submit data) "Submit" ]
         ]
 
 
@@ -162,7 +177,7 @@ viewButton action label =
 
 
 
--- Cmd
+-- CMD
 
 
 doAfterMs : Float -> msg -> Cmd msg

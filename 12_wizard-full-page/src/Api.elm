@@ -1,6 +1,11 @@
-module Api exposing (Submittable, submit)
+module Api exposing (Step(..), Submittable, submit)
 
 import Dict exposing (Dict)
+
+
+type Step model
+    = Continue model
+    | Done Submittable
 
 
 type alias Submittable =
