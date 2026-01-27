@@ -5,6 +5,7 @@ import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
+import Flow exposing (Flow)
 
 
 
@@ -26,39 +27,65 @@ init =
 
 
 type Msg
-    = UpdateDescription String
-    | SubmitDescription
-    | UpdateUseCase String
-    | SubmitRequest
+    = ChangedDescription String
+    | ClickedSubmitDescription
+    | ChangedUseCase String
+    | ClickedDone
+    | ClickedGoBack
 
 
-update : Msg -> Model -> Api.Step Model
+update : Msg -> Model -> Flow Model
 update msg model =
-    case ( msg, model ) of
-        ( UpdateDescription text, Describe _ ) ->
-            Api.Continue (Describe text)
+    case msg of
+        ChangedDescription text ->
+            case model of
+                Describe _ ->
+                    Flow.Continue (Describe text)
 
-        ( SubmitDescription, Describe description ) ->
-            if String.isEmpty (String.trim description) then
-                Api.Continue model
+                _ ->
+                    Flow.Continue model
 
-            else
-                Api.Continue (Elaborate description "")
+        ClickedSubmitDescription ->
+            case model of
+                Describe description ->
+                    if String.isEmpty (String.trim description) then
+                        Flow.Continue model
 
-        ( UpdateUseCase text, Elaborate description _ ) ->
-            Api.Continue (Elaborate description text)
+                    else
+                        Flow.Continue (Elaborate description "")
 
-        ( SubmitRequest, Elaborate description useCase ) ->
-            Api.Done
-                (Dict.fromList
-                    [ ( "Type", "Feature Request" )
-                    , ( "Description", description )
-                    , ( "Use Case", useCase )
-                    ]
-                )
+                _ ->
+                    Flow.Continue model
 
-        _ ->
-            Api.Continue model
+        ChangedUseCase text ->
+            case model of
+                Elaborate description _ ->
+                    Flow.Continue (Elaborate description text)
+
+                _ ->
+                    Flow.Continue model
+
+        ClickedDone ->
+            case model of
+                Elaborate description useCase ->
+                    Flow.Done
+                        (Dict.fromList
+                            [ ( "Type", "Feature Request" )
+                            , ( "Description", description )
+                            , ( "Use Case", useCase )
+                            ]
+                        )
+
+                _ ->
+                    Flow.Continue model
+
+        ClickedGoBack ->
+            case model of
+                Elaborate description _ ->
+                    Flow.Continue (Describe description)
+
+                _ ->
+                    Flow.Continue model
 
 
 
@@ -71,8 +98,8 @@ view model =
         Describe description ->
             viewDescribe description
 
-        Elaborate description useCase ->
-            viewElaborate description useCase
+        Elaborate _ useCase ->
+            viewElaborate useCase
 
 
 viewDescribe : String -> Html Msg
@@ -84,16 +111,16 @@ viewDescribe description =
             , Attr.placeholder "Describe the feature you'd like..."
             , Attr.class "w-full p-2 border rounded"
             , Attr.rows 4
-            , Events.onInput UpdateDescription
+            , Events.onInput ChangedDescription
             ]
             []
         , viewRow
-            [ viewButton SubmitDescription "Next" ]
+            [ viewButton ClickedSubmitDescription "Next" ]
         ]
 
 
-viewElaborate : String -> String -> Html Msg
-viewElaborate _ useCase =
+viewElaborate : String -> Html Msg
+viewElaborate useCase =
     Html.div []
         [ Html.p [] [ Html.text "How would this feature help you? (optional)" ]
         , Html.textarea
@@ -101,11 +128,13 @@ viewElaborate _ useCase =
             , Attr.placeholder "This would help me because..."
             , Attr.class "w-full p-2 border rounded"
             , Attr.rows 3
-            , Events.onInput UpdateUseCase
+            , Events.onInput ChangedUseCase
             ]
             []
         , viewRow
-            [ viewButton SubmitRequest "Done" ]
+            [ viewButton ClickedGoBack "Back"
+            , viewButton ClickedDone "Done"
+            ]
         ]
 
 

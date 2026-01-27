@@ -9,6 +9,7 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Process
+import Flow
 import Task
 
 
@@ -35,7 +36,7 @@ type Model
     | Welcome
     | ReportBug Bug.Model
     | RequestFeature Feature.Model
-    | Confirm Api.Submittable
+    | Confirm Api.Submittable Model
     | ThankYou
 
 
@@ -43,59 +44,75 @@ type Model
 -- UPDATE
 
 
+type Msg
+    = ClickedGiveFeedback
+    | ClickedReportBug
+    | ClickedRequestFeature
+    | GotBugMsg Bug.Msg
+    | GotFeatureMsg Feature.Msg
+    | ClickedGoBack
+    | ClickedSubmit Api.Submittable
+    | ThankYouTimerExpired
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
-        ( OpenWizard, _ ) ->
+    case msg of
+        ClickedGiveFeedback ->
             ( Welcome, Cmd.none )
 
-        ( StartBugReport, _ ) ->
+        ClickedReportBug ->
             ( ReportBug Bug.init, Cmd.none )
 
-        ( StartFeatureRequest, _ ) ->
+        ClickedRequestFeature ->
             ( RequestFeature Feature.init, Cmd.none )
 
-        ( GotBugMsg bugMsg, ReportBug bugModel ) ->
-            Bug.update bugMsg bugModel
-                |> updateWith ReportBug
+        GotBugMsg bugMsg ->
+            case model of
+                ReportBug bugModel ->
+                    Bug.update bugMsg bugModel
+                        |> handleStep model ReportBug
 
-        ( GotFeatureMsg featureMsg, RequestFeature featureModel ) ->
-            Feature.update featureMsg featureModel
-                |> updateWith RequestFeature
+                _ ->
+                    ( model, Cmd.none )
 
-        ( Submit data, _ ) ->
+        GotFeatureMsg featureMsg ->
+            case model of
+                RequestFeature featureModel ->
+                    Feature.update featureMsg featureModel
+                        |> handleStep model RequestFeature
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ClickedGoBack ->
+            case model of
+                Confirm _ previousModel ->
+                    ( previousModel, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ClickedSubmit data ->
             ( ThankYou
             , Cmd.batch
                 [ Api.submit data
-                , doAfterMs 3000 CloseWizard
+                , doAfterMs 3000 ThankYouTimerExpired
                 ]
             )
 
-        ( CloseWizard, _ ) ->
+        ThankYouTimerExpired ->
             ( Closed, Cmd.none )
 
-        ( _, _ ) ->
-            ( model, Cmd.none )
 
-
-updateWith : (childModel -> Model) -> Api.Step childModel -> ( Model, Cmd Msg )
-updateWith toModel step =
+handleStep : Model -> (childModel -> Model) -> Flow.Flow childModel -> ( Model, Cmd Msg )
+handleStep previousModel toModel step =
     case step of
-        Api.Continue childModel ->
+        Flow.Continue childModel ->
             ( toModel childModel, Cmd.none )
 
-        Api.Done data ->
-            ( Confirm data, Cmd.none )
-
-
-type Msg
-    = OpenWizard
-    | StartBugReport
-    | StartFeatureRequest
-    | GotBugMsg Bug.Msg
-    | GotFeatureMsg Feature.Msg
-    | Submit Api.Submittable
-    | CloseWizard
+        Flow.Done data ->
+            ( Confirm data previousModel, Cmd.none )
 
 
 
@@ -106,7 +123,7 @@ view : Model -> Html Msg
 view model =
     case model of
         Closed ->
-            viewButton OpenWizard "Give feedback"
+            viewButton ClickedGiveFeedback "Give feedback"
 
         Welcome ->
             viewWelcomeScreen
@@ -117,7 +134,7 @@ view model =
         RequestFeature featureModel ->
             Feature.view featureModel |> Html.map GotFeatureMsg
 
-        Confirm data ->
+        Confirm data _ ->
             viewConfirmScreen data
 
         ThankYou ->
@@ -129,8 +146,8 @@ viewWelcomeScreen =
     Html.div []
         [ Html.span [] [ Html.text "Please choose feedback type:" ]
         , viewRow
-            [ viewButton StartBugReport "Report bug"
-            , viewButton StartFeatureRequest "Request feature"
+            [ viewButton ClickedReportBug "Report bug"
+            , viewButton ClickedRequestFeature "Request feature"
             ]
         ]
 
@@ -151,7 +168,9 @@ viewConfirmScreen data =
                     )
             )
         , viewRow
-            [ viewButton (Submit data) "Submit" ]
+            [ viewButton ClickedGoBack "Go back"
+            , viewButton (ClickedSubmit data) "Submit"
+            ]
         ]
 
 

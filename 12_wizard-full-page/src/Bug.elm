@@ -2,6 +2,7 @@ module Bug exposing (Model, Msg, init, update, view)
 
 import Api
 import Dict
+import Flow exposing (Flow)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
@@ -34,44 +35,73 @@ init =
 
 
 type Msg
-    = ChooseType BugType
-    | UpdateDescription String
-    | SubmitDescription
-    | UpdateSteps String
-    | SubmitSteps
+    = ClickedBugType BugType
+    | ChangedDescription String
+    | ClickedSubmitDescription
+    | ChangedSteps String
+    | ClickedDone
+    | ClickedGoBack
 
 
-update : Msg -> Model -> Api.Step Model
+update : Msg -> Model -> Flow Model
 update msg model =
-    case ( msg, model ) of
-        ( ChooseType bugType, SelectType ) ->
-            Api.Continue (Describe bugType "")
+    case msg of
+        ClickedBugType bugType ->
+            Flow.Continue (Describe bugType "")
 
-        ( UpdateDescription text, Describe bugType _ ) ->
-            Api.Continue (Describe bugType text)
+        ChangedDescription text ->
+            case model of
+                Describe bugType _ ->
+                    Flow.Continue (Describe bugType text)
 
-        ( SubmitDescription, Describe bugType description ) ->
-            if String.isEmpty (String.trim description) then
-                Api.Continue model
+                _ ->
+                    Flow.Continue model
 
-            else
-                Api.Continue (StepsToReproduce bugType description "")
+        ClickedSubmitDescription ->
+            case model of
+                Describe bugType description ->
+                    if String.isEmpty (String.trim description) then
+                        Flow.Continue model
 
-        ( UpdateSteps text, StepsToReproduce bugType description _ ) ->
-            Api.Continue (StepsToReproduce bugType description text)
+                    else
+                        Flow.Continue (StepsToReproduce bugType description "")
 
-        ( SubmitSteps, StepsToReproduce bugType description steps ) ->
-            Api.Done
-                (Dict.fromList
-                    [ ( "Type", "Bug Report" )
-                    , ( "Category", bugTypeToString bugType )
-                    , ( "Description", description )
-                    , ( "Steps to Reproduce", steps )
-                    ]
-                )
+                _ ->
+                    Flow.Continue model
 
-        _ ->
-            Api.Continue model
+        ChangedSteps text ->
+            case model of
+                StepsToReproduce bugType description _ ->
+                    Flow.Continue (StepsToReproduce bugType description text)
+
+                _ ->
+                    Flow.Continue model
+
+        ClickedDone ->
+            case model of
+                StepsToReproduce bugType description steps ->
+                    Flow.Done
+                        (Dict.fromList
+                            [ ( "Type", "Bug Report" )
+                            , ( "Category", bugTypeToString bugType )
+                            , ( "Description", description )
+                            , ( "Steps to Reproduce", steps )
+                            ]
+                        )
+
+                _ ->
+                    Flow.Continue model
+
+        ClickedGoBack ->
+            case model of
+                Describe bugType description ->
+                    Flow.Continue SelectType
+
+                StepsToReproduce bugType description _ ->
+                    Flow.Continue (Describe bugType description)
+
+                _ ->
+                    Flow.Continue model
 
 
 
@@ -87,8 +117,8 @@ view model =
         Describe bugType description ->
             viewDescribe bugType description
 
-        StepsToReproduce bugType description steps ->
-            viewStepsToReproduce bugType description steps
+        StepsToReproduce _ _ steps ->
+            viewStepsToReproduce steps
 
 
 viewSelectType : Html Msg
@@ -96,10 +126,10 @@ viewSelectType =
     Html.div []
         [ Html.p [] [ Html.text "What kind of bug are you experiencing?" ]
         , viewRow
-            [ viewButton (ChooseType Visual) "Visual/UI"
-            , viewButton (ChooseType Functional) "Functional"
-            , viewButton (ChooseType Performance) "Performance"
-            , viewButton (ChooseType Other) "Other"
+            [ viewButton (ClickedBugType Visual) "Visual/UI"
+            , viewButton (ClickedBugType Functional) "Functional"
+            , viewButton (ClickedBugType Performance) "Performance"
+            , viewButton (ClickedBugType Other) "Other"
             ]
         ]
 
@@ -114,16 +144,18 @@ viewDescribe bugType description =
             , Attr.placeholder "What happened? What did you expect?"
             , Attr.class "w-full p-2 border rounded"
             , Attr.rows 4
-            , Events.onInput UpdateDescription
+            , Events.onInput ChangedDescription
             ]
             []
         , viewRow
-            [ viewButton SubmitDescription "Next" ]
+            [ viewButton ClickedGoBack "Back"
+            , viewButton ClickedSubmitDescription "Next"
+            ]
         ]
 
 
-viewStepsToReproduce : BugType -> String -> String -> Html Msg
-viewStepsToReproduce _ _ steps =
+viewStepsToReproduce : String -> Html Msg
+viewStepsToReproduce steps =
     Html.div []
         [ Html.p [] [ Html.text "How can we reproduce this bug?" ]
         , Html.textarea
@@ -131,11 +163,13 @@ viewStepsToReproduce _ _ steps =
             , Attr.placeholder "1. Go to...\n2. Click on...\n3. See error"
             , Attr.class "w-full p-2 border rounded"
             , Attr.rows 4
-            , Events.onInput UpdateSteps
+            , Events.onInput ChangedSteps
             ]
             []
         , viewRow
-            [ viewButton SubmitSteps "Done" ]
+            [ viewButton ClickedGoBack "Back"
+            , viewButton ClickedDone "Done"
+            ]
         ]
 
 
