@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Feedback Wizard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="main.js"></script>
+    <script>
+      const app = Elm.Main.init({
+        node: document.getElementById("app"),
+      });
+
+      const dialogObserver = () => {
+        const dialog = document.getElementById("wizard-dialog");
+        if (!dialog) return;
+        if (dialog.classList.contains("open") && !dialog.open) {
+          dialog.showModal();
+        } else if (dialog.classList.contains("closed") && dialog.open) {
+          dialog.close();
+        }
+      };
+
+      new MutationObserver(dialogObserver).observe(
+        document.getElementById("wizard-dialog"),
+        { attributes: true, attributeFilter: ["class"] },
+      );
+    </script>
+  </body>
+</html>

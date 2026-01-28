@@ -82,16 +82,40 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Closed ->
-            viewButton ClickedGiveFeedback "Give feedback"
+    let
+        ( button, dialogContent, dialogOpen ) =
+            case model of
+                Closed ->
+                    ( viewButton ClickedGiveFeedback "Give feedback"
+                    , Html.text ""
+                    , False
+                    )
 
-        Wizard wizardModel ->
-            Wizard.view wizardModel
-                |> Html.map GotWizardMsg
+                Wizard wizardModel ->
+                    ( Html.text ""
+                    , Wizard.view wizardModel
+                        |> Html.map GotWizardMsg
+                    , True
+                    )
 
-        ThankYou ->
-            Debug.todo "branch 'ThankYou' not implemented"
+                ThankYou ->
+                    Debug.todo "branch 'ThankYou' not implemented"
+    in
+    Html.div []
+        [ button
+        , Html.node "dialog"
+            [ Attr.id "wizard-dialog"
+            , Attr.class "m-auto p-2 rounded outline-none"
+            , Attr.class <|
+                if dialogOpen then
+                    "open"
+
+                else
+                    "closed"
+            ]
+            [ dialogContent
+            ]
+        ]
 
 
 viewRow : List (Html msg) -> Html msg
