@@ -1,6 +1,5 @@
-module Main exposing (main)
+port module Main exposing (main)
 
-import Api
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -17,10 +16,12 @@ import Wizard
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always ( Closed, Cmd.none )
+        { init = \_ -> ( Closed, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions =
+            \_ ->
+                dialogCancel (\() -> CanceledNatively)
         }
 
 
@@ -42,6 +43,7 @@ type Msg
     = ClickedGiveFeedback
     | ThankYouTimedOut
     | GotWizardMsg Wizard.Msg
+    | CanceledNatively
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,6 +75,9 @@ update msg model =
                     ( model, Cmd.none )
 
         ThankYouTimedOut ->
+            ( Closed, Cmd.none )
+
+        CanceledNatively ->
             ( Closed, Cmd.none )
 
 
@@ -139,3 +144,10 @@ viewButton action label =
 doAfterMs : Float -> msg -> Cmd msg
 doAfterMs time msg =
     Process.sleep time |> Task.perform (always msg)
+
+
+
+-- PORTS
+
+
+port dialogCancel : (() -> msg) -> Sub msg

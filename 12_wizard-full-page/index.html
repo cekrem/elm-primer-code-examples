@@ -13,8 +13,9 @@
         node: document.getElementById("app"),
       });
 
+      const dialog = document.getElementById("wizard-dialog");
+
       const dialogObserver = () => {
-        const dialog = document.getElementById("wizard-dialog");
         if (!dialog) return;
         if (dialog.classList.contains("open") && !dialog.open) {
           dialog.showModal();
@@ -23,10 +24,15 @@
         }
       };
 
-      new MutationObserver(dialogObserver).observe(
-        document.getElementById("wizard-dialog"),
-        { attributes: true, attributeFilter: ["class"] },
-      );
+      new MutationObserver(dialogObserver).observe(dialog, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+
+      dialog.addEventListener("cancel", (e) => {
+        e.preventDefault(); // let Elm handle cancel!
+        app.ports.dialogCancel.send(null);
+      });
     </script>
   </body>
 </html>
