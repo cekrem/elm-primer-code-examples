@@ -5,11 +5,11 @@ import Browser
 import Bug
 import Dict
 import Feature
+import Flow
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Process
-import Flow
 import Task
 
 
@@ -71,7 +71,7 @@ update msg model =
             case model of
                 ReportBug bugModel ->
                     Bug.update bugMsg bugModel
-                        |> handleStep model ReportBug
+                        |> handleFlow model ReportBug
 
                 _ ->
                     ( model, Cmd.none )
@@ -80,7 +80,7 @@ update msg model =
             case model of
                 RequestFeature featureModel ->
                     Feature.update featureMsg featureModel
-                        |> handleStep model RequestFeature
+                        |> handleFlow model RequestFeature
 
                 _ ->
                     ( model, Cmd.none )
@@ -105,8 +105,8 @@ update msg model =
             ( Closed, Cmd.none )
 
 
-handleStep : Model -> (childModel -> Model) -> Flow.Flow childModel -> ( Model, Cmd Msg )
-handleStep previousModel toModel step =
+handleFlow : Model -> (childModel -> Model) -> Flow.Flow childModel -> ( Model, Cmd Msg )
+handleFlow previousModel toModel step =
     case step of
         Flow.Continue childModel ->
             ( toModel childModel, Cmd.none )

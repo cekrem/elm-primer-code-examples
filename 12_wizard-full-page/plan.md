@@ -3,8 +3,8 @@
 ## Goal
 Model a multi-step wizard that teaches:
 - Nested state
-- Phantom types
 - Opaque types
+- Union types encoding workflow states
 - Ruling out impossible states
 
 ## Structure
