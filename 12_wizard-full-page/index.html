@@ -68,6 +68,7 @@
 
       const dialogObserver = () => {
         if (!dialog) return;
+
         if (dialog.classList.contains("open") && !dialog.open) {
           dialog.showModal();
         } else if (dialog.classList.contains("closed") && dialog.open) {
