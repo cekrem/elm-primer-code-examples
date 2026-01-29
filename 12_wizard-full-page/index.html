@@ -6,11 +6,62 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body>
-    <div id="app"></div>
+    <main class="[&_p]:mt-2 max-w-lg p-2 m-auto">
+      <h1 class="text-2xl">
+        My Company's Great Page With Lots of non-Elm content
+      </h1>
+      <p>
+        I'm baby keffiyeh pour-over meditation cronut, mixtape VHS wolf
+        solarpunk offal art party poke blue bottle. Fashion axe sriracha artisan
+        bushwick knausgaard. Quinoa 90's retro tumeric waistcoat. Solarpunk
+        post-ironic chambray kale chips waistcoat flannel.
+      </p>
+
+      <p>
+        Mixtape four dollar toast blackbird spyplane sartorial. Drinking vinegar
+        slow-carb unicorn meggings helvetica. Af live-edge edison bulb, small
+        batch vibecession neutral milk hotel banh mi meditation hammock salvia
+        you probably haven't heard of them ramps. Actually kinfolk offal
+        listicle slow-carb fam deep v semiotics swag typewriter. Cupping jean
+        shorts DSA, meditation freegan VHS vape lumbersexual.
+      </p>
+
+      <p>
+        Hashtag taiyaki raw denim disrupt. Church-key copper mug vibecession,
+        letterpress umami knausgaard forage semiotics big mood schlitz.
+        Microdosing blackbird spyplane man bun blue bottle four dollar toast
+        helvetica grailed same vice gorpcore. Wayfarers bodega boys kickstarter
+        copper mug venmo.
+      </p>
+
+      <p>
+        Lomo XOXO iceland disrupt, seitan ugh fanny pack offal. Cardigan
+        flexitarian pour-over truffaut intelligentsia occupy next level marxism
+        kombucha ugh before they sold out selfies four loko shaman bicycle
+        rights. Vibecession direct trade celiac, forage lomo organic street art
+        JOMO meggings pabst edison bulb godard irony. Humblebrag scenester
+        biodiesel hashtag tumblr. Chia tilde ascot, pitchfork mukbang blog venmo
+        bushwick ennui. Gastropub green juice bitters keffiyeh, fingerstache
+        banh mi shaman artisan deep v quinoa iceland irony plaid. Drinking
+        vinegar brunch kinfolk health goth 8-bit you probably haven't heard of
+        them cold-pressed.
+      </p>
+
+      <p>
+        Before they sold out fashion axe tofu, ramps cornhole health goth
+        vaporware intelligentsia taiyaki meditation. Stumptown marfa jean shorts
+        shaman. Prism aesthetic sriracha craft beer. Neutral milk hotel try-hard
+        scenester snackwave street art.
+      </p>
+
+      <p>Dummy text? More like dummy thicc text, amirite?</p>
+    </main>
+    <div id="feedback"></div>
+
     <script src="main.js"></script>
     <script>
       const app = Elm.Main.init({
-        node: document.getElementById("app"),
+        node: document.getElementById("feedback"),
       });
 
       const dialog = document.getElementById("wizard-dialog");

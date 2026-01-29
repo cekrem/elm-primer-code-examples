@@ -1,6 +1,8 @@
 port module Main exposing (main)
 
+import Api
 import Browser
+import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
@@ -32,7 +34,7 @@ main =
 type Model
     = Closed
     | Wizard Wizard.Model
-    | ThankYou
+    | ThankYou Api.Submittable
 
 
 
@@ -64,7 +66,7 @@ update msg model =
                             ( Closed, Cmd.none )
 
                         Just (Wizard.Complete submittable) ->
-                            ( ThankYou, doAfterMs 5000 ThankYouTimedOut )
+                            ( ThankYou submittable, doAfterMs 5000 ThankYouTimedOut )
 
                         Nothing ->
                             ( Wizard newWizardModel
@@ -103,14 +105,17 @@ view model =
                     , True
                     )
 
-                ThankYou ->
-                    Debug.todo "branch 'ThankYou' not implemented"
+                ThankYou data ->
+                    ( Html.text ""
+                    , viewThankYou data
+                    , True
+                    )
     in
     Html.div []
         [ button
         , Html.node "dialog"
             [ Attr.id "wizard-dialog"
-            , Attr.class "m-auto p-2 rounded outline-none"
+            , Attr.class "m-auto p-2 rounded-xl outline-none backdrop:backdrop-blur-[4px]"
             , Attr.class <|
                 if dialogOpen then
                     "open"
@@ -123,18 +128,34 @@ view model =
         ]
 
 
-viewRow : List (Html msg) -> Html msg
-viewRow =
-    Html.div [ Attr.class "flex gap-2 items-center" ]
+viewThankYou : Api.Submittable -> Html msg
+viewThankYou data =
+    Html.div []
+        [ Html.h1 [ Attr.class "text-xl" ]
+            [ Html.text "Thank you for your feedback!" ]
+        , Html.h3 [ Attr.class "text-lg" ]
+            [ Html.text "You sent in the following:"
+            ]
+        , viewDataSentIn data
+        , Html.span [ Attr.class "text-sm" ]
+            [ Html.text "This dialog will close in 5 seconds" ]
+        ]
 
 
 viewButton : msg -> String -> Html msg
 viewButton action label =
-    Html.button
+    Html.div
         [ Events.onClick action
-        , Attr.class "p-2 bg-blue-200 rounded cursor-pointer"
+        , Attr.class "fixed top-0 right-0 p-2 bg-blue-200 rounded cursor-pointer"
         ]
         [ Html.text label ]
+
+
+viewDataSentIn : Api.Submittable -> Html msg
+viewDataSentIn =
+    Dict.toList
+        >> List.map (\( key, val ) -> Html.li [ Attr.class "whitespace-pre" ] [ Html.text <| key ++ ":\t\t" ++ val ])
+        >> Html.ul []
 
 
 
