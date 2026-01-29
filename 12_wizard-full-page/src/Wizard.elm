@@ -43,7 +43,7 @@ viewButton : msg -> String -> Html msg
 viewButton action label =
     Html.div
         [ Events.onClick action
-        , Attr.class "p-2 bg-blue-200 rounded cursor-pointer"
+        , Attr.class "p-2 bg-[#5cee9a] rounded cursor-pointer"
         ]
         [ Html.text label ]
 
