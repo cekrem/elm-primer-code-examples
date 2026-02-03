@@ -6,8 +6,7 @@ import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Process
-import Task
+import Time
 import Wizard
 
 
@@ -22,8 +21,16 @@ main =
         , view = view
         , update = update
         , subscriptions =
-            \_ ->
-                dialogCancel (\() -> CanceledNatively)
+            \model ->
+                case model of
+                    Wizard _ ->
+                        dialogCancel (\() -> CanceledNatively)
+
+                    ThankYou _ _ ->
+                        Time.every 1000 (\_ -> ThankYouTick)
+
+                    Closed ->
+                        Sub.none
         }
 
 
@@ -34,7 +41,7 @@ main =
 type Model
     = Closed
     | Wizard Wizard.Model
-    | ThankYou Api.Submittable
+    | ThankYou Api.Submittable Int
 
 
 
@@ -43,7 +50,7 @@ type Model
 
 type Msg
     = ClickedGiveFeedback
-    | ThankYouTimedOut
+    | ThankYouTick
     | GotWizardMsg Wizard.Msg
     | CanceledNatively
 
@@ -66,7 +73,7 @@ update msg model =
                             ( Closed, Cmd.none )
 
                         Just (Wizard.Complete submittable) ->
-                            ( ThankYou submittable, doAfterMs 5000 ThankYouTimedOut )
+                            ( ThankYou submittable 5, Cmd.none )
 
                         Nothing ->
                             ( Wizard newWizardModel
@@ -76,8 +83,16 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ThankYouTimedOut ->
-            ( Closed, Cmd.none )
+        ThankYouTick ->
+            case model of
+                ThankYou _ 1 ->
+                    ( Closed, Cmd.none )
+
+                ThankYou submittable timer ->
+                    ( ThankYou submittable (timer - 1), Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         CanceledNatively ->
             ( Closed, Cmd.none )
@@ -105,9 +120,9 @@ view model =
                     , True
                     )
 
-                ThankYou data ->
+                ThankYou data timer ->
                     ( Html.text ""
-                    , viewThankYou data
+                    , viewThankYou data timer
                     , True
                     )
     in
@@ -115,7 +130,7 @@ view model =
         [ button
         , Html.node "dialog"
             [ Attr.id "wizard-dialog"
-            , Attr.class "m-auto p-2 rounded-xl outline-none backdrop:backdrop-blur-[4px]"
+            , Attr.class "m-auto p-4 rounded-xl outline-none backdrop:backdrop-blur-[4px]"
             , Attr.class <|
                 if dialogOpen then
                     "open"
@@ -128,17 +143,23 @@ view model =
         ]
 
 
-viewThankYou : Api.Submittable -> Html msg
-viewThankYou data =
+viewThankYou : Api.Submittable -> Int -> Html msg
+viewThankYou data timer =
+    let
+        timerText =
+            "This dialog will close in " ++ String.fromInt timer ++ " seconds"
+    in
     Html.div []
-        [ Html.h1 [ Attr.class "text-xl" ]
+        [ Html.h1 [ Attr.class "text-xl font-bold" ]
             [ Html.text "Thank you for your feedback!" ]
         , Html.h3 [ Attr.class "text-lg" ]
             [ Html.text "You sent in the following:"
             ]
-        , viewDataSentIn data
-        , Html.span [ Attr.class "text-sm" ]
-            [ Html.text "This dialog will close in 5 seconds" ]
+
+        --  , viewDataSentIn data
+        , viewDataTable data
+        , Html.span [ Attr.class "text-xs" ]
+            [ Html.text timerText ]
         ]
 
 
@@ -155,16 +176,26 @@ viewDataSentIn : Api.Submittable -> Html msg
 viewDataSentIn =
     Dict.toList
         >> List.map (\( key, val ) -> Html.li [ Attr.class "whitespace-pre" ] [ Html.text <| key ++ ":\t\t" ++ val ])
-        >> Html.ul []
+        >> Html.ul [ Attr.class "bg-gray-100 rounded p-2" ]
 
 
+viewDataTable : Api.Submittable -> Html msg
+viewDataTable data =
+    let
+        filteredData =
+            data
+                |> Dict.filter (\key val -> key /= "" && val /= "")
 
--- CMD
+        keys =
+            filteredData |> Dict.keys
 
-
-doAfterMs : Float -> msg -> Cmd msg
-doAfterMs time msg =
-    Process.sleep time |> Task.perform (always msg)
+        values =
+            filteredData |> Dict.values
+    in
+    Html.table [ Attr.class "bg-gray-100 rounded p-2 table-fixed" ]
+        [ Html.thead [] (keys |> List.map (\key -> Html.th [] [ Html.text key ]))
+        , Html.tbody [] (values |> List.map (\val -> Html.td [] [ Html.text val ]))
+        ]
 
 
 

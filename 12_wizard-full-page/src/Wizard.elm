@@ -1,19 +1,22 @@
 module Wizard exposing (Model, Msg, OutMsg(..), init, update, view)
 
 import Api
-import Dict
+import Dict exposing (Dict)
+import Form
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events as Events
 
 
 type Model
-    = Intro
+    = Model
+        { formValues : Dict String String
+        }
 
 
 type Msg
     = Noop
-    | Finished Api.Submittable
+    | FormChanged Api.Submittable
+    | FormSubmitted
 
 
 type OutMsg
@@ -22,42 +25,42 @@ type OutMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, Maybe OutMsg )
-update msg model =
+update msg ((Model model) as unchangedModel) =
     case msg of
         Noop ->
-            ( model, Cmd.none, Nothing )
+            ( Model model, Cmd.none, Nothing )
 
-        Finished data ->
-            ( model, Cmd.none, Just <| Complete data )
+        FormChanged newValues ->
+            ( Model { model | formValues = newValues }, Cmd.none, Nothing )
+
+        FormSubmitted ->
+            ( unchangedModel, Cmd.none, Just <| Complete model.formValues )
 
 
 view : Model -> Html Msg
-view model =
+view (Model model) =
     Html.div []
-        [ Html.text "TODO: wizard view."
-        , viewButton (Finished mockData) "Click to finish wizard with mock data"
+        [ viewTitle "Submit feedback"
+        , Form.new [ Attr.class "flex flex-col gap-2" ]
+            [ Form.input "feedback" "Feedback"
+                |> Form.withRequired True
+                |> Form.withPlaceholder "What's your feedback?"
+                |> Form.withAttributes [ Attr.class "p-2" ]
+            , Form.input "email" "Email Address"
+                |> Form.withType "email"
+                |> Form.withPlaceholder "Your email (optional)"
+                |> Form.withAttributes [ Attr.class "p-2" ]
+            ]
+            |> Form.withSubmitButton "Submit" [ Attr.class "p-2 bg-[#5cee9a] rounded cursor-pointer" ]
+            |> Form.build model.formValues FormChanged FormSubmitted
         ]
 
 
-viewButton : msg -> String -> Html msg
-viewButton action label =
-    Html.div
-        [ Events.onClick action
-        , Attr.class "p-2 bg-[#5cee9a] rounded cursor-pointer"
-        ]
-        [ Html.text label ]
+viewTitle : String -> Html msg
+viewTitle title =
+    Html.h1 [ Attr.class "text-xl font-bold mb-2" ] [ Html.text title ]
 
 
 init : Model
 init =
-    Intro
-
-
-mockData : Api.Submittable
-mockData =
-    [ ( "some data type", "some data value" )
-    , ( "some data type2", "some data value" )
-    , ( "some data type3", "some data value" )
-    , ( "some data type4", "some data value" )
-    ]
-        |> Dict.fromList
+    Model { formValues = Dict.empty }
