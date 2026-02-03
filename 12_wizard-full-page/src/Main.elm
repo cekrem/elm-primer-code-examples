@@ -130,7 +130,10 @@ view model =
         [ button
         , Html.node "dialog"
             [ Attr.id "wizard-dialog"
-            , Attr.class "m-auto p-4 rounded-xl outline-none backdrop:backdrop-blur-[4px]"
+            , Attr.class "p-4 m-auto"
+            , Attr.class "rounded-xl"
+            , Attr.class "outline-none"
+            , Attr.class "backdrop:backdrop-blur-[4px]"
             , Attr.class <|
                 if dialogOpen then
                     "open"
@@ -167,7 +170,11 @@ viewButton : msg -> String -> Html msg
 viewButton action label =
     Html.div
         [ Events.onClick action
-        , Attr.class "fixed top-0 right-0 p-2 m-2 bg-[#5cee9a] rounded cursor-pointer"
+        , Attr.class "fixed top-0 right-0"
+        , Attr.class "p-2 m-2"
+        , Attr.class "bg-[#5cee9a]"
+        , Attr.class "rounded"
+        , Attr.class "cursor-pointer"
         ]
         [ Html.text label ]
 
@@ -176,7 +183,11 @@ viewDataSentIn : Api.Submittable -> Html msg
 viewDataSentIn =
     Dict.toList
         >> List.map (\( key, val ) -> Html.li [ Attr.class "whitespace-pre" ] [ Html.text <| key ++ ":\n\t\t" ++ val ])
-        >> Html.ul [ Attr.class "bg-gray-100 rounded p-2" ]
+        >> Html.ul
+            [ Attr.class "p-2"
+            , Attr.class "bg-gray-100"
+            , Attr.class "rounded"
+            ]
 
 
 

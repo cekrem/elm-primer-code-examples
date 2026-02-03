@@ -51,14 +51,23 @@ view (Model model) =
                 |> Form.withPlaceholder "Your email (optional)"
                 |> Form.withAttributes [ Attr.class "p-2" ]
             ]
-            |> Form.withSubmitButton "Submit" [ Attr.class "p-2 bg-[#5cee9a] rounded cursor-pointer" ]
+            |> Form.withSubmitButton "Submit"
+                [ Attr.class "p-2"
+                , Attr.class "bg-[#5cee9a]"
+                , Attr.class "rounded"
+                , Attr.class "cursor-pointer"
+                ]
             |> Form.build model.formValues FormChanged FormSubmitted
         ]
 
 
 viewTitle : String -> Html msg
 viewTitle title =
-    Html.h1 [ Attr.class "text-xl font-bold mb-2" ] [ Html.text title ]
+    Html.h1
+        [ Attr.class "mb-2"
+        , Attr.class "text-xl font-bold"
+        ]
+        [ Html.text title ]
 
 
 init : Model
