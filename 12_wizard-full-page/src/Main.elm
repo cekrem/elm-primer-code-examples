@@ -155,9 +155,9 @@ viewThankYou data timer =
         , Html.h3 [ Attr.class "text-lg" ]
             [ Html.text "You sent in the following:"
             ]
+        , viewDataSentIn data
 
-        --  , viewDataSentIn data
-        , viewDataTable data
+        --, viewDataTable data
         , Html.span [ Attr.class "text-xs" ]
             [ Html.text timerText ]
         ]
@@ -175,27 +175,8 @@ viewButton action label =
 viewDataSentIn : Api.Submittable -> Html msg
 viewDataSentIn =
     Dict.toList
-        >> List.map (\( key, val ) -> Html.li [ Attr.class "whitespace-pre" ] [ Html.text <| key ++ ":\t\t" ++ val ])
+        >> List.map (\( key, val ) -> Html.li [ Attr.class "whitespace-pre" ] [ Html.text <| key ++ ":\n\t\t" ++ val ])
         >> Html.ul [ Attr.class "bg-gray-100 rounded p-2" ]
-
-
-viewDataTable : Api.Submittable -> Html msg
-viewDataTable data =
-    let
-        filteredData =
-            data
-                |> Dict.filter (\key val -> key /= "" && val /= "")
-
-        keys =
-            filteredData |> Dict.keys
-
-        values =
-            filteredData |> Dict.values
-    in
-    Html.table [ Attr.class "bg-gray-100 rounded p-2 table-fixed" ]
-        [ Html.thead [] (keys |> List.map (\key -> Html.th [] [ Html.text key ]))
-        , Html.tbody [] (values |> List.map (\val -> Html.td [] [ Html.text val ]))
-        ]
 
 
 
