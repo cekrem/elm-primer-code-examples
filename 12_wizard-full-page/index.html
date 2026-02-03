@@ -82,7 +82,10 @@
       });
 
       dialog.addEventListener("cancel", (e) => {
-        e.preventDefault(); // let Elm handle cancel!
+        // let Elm handle cancel!
+        e.stopPropagation();
+        e.preventDefault();
+
         app.ports.dialogCancel.send(null);
       });
     </script>

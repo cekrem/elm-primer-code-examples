@@ -156,7 +156,7 @@ view model =
             , Attr.class "p-4 m-auto"
             , Attr.class "rounded-xl"
             , Attr.class "outline-none"
-            , Attr.class "backdrop:backdrop-blur-[4px]"
+            , Attr.class "backdrop:backdrop-blur-[4px] backdrop:transition-all"
             , Attr.class <|
                 if dialogOpen then
                     "open"
