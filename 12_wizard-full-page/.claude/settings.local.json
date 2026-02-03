@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(elm make:*)",
+      "Bash(npx elm:*)",
+      "WebFetch(domain:cekrem.github.io)"
+    ]
+  }
+}
