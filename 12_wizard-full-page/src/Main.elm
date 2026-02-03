@@ -31,6 +31,9 @@ main =
 
                     Closed ->
                         Sub.none
+
+                    ConfirmCancel _ ->
+                        Sub.none
         }
 
 
@@ -42,6 +45,7 @@ type Model
     = Closed
     | Wizard Wizard.Model
     | ThankYou Api.Submittable Int
+    | ConfirmCancel Model
 
 
 
@@ -53,6 +57,8 @@ type Msg
     | ThankYouTick
     | GotWizardMsg Wizard.Msg
     | CanceledNatively
+    | ConfirmedCancel
+    | AbortCancel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -70,7 +76,7 @@ update msg model =
                     in
                     case maybeOutMsg of
                         Just Wizard.Cancel ->
-                            ( Closed, Cmd.none )
+                            ( ConfirmCancel model, Cmd.none )
 
                         Just (Wizard.Complete submittable) ->
                             ( ThankYou submittable 5, Cmd.none )
@@ -95,7 +101,18 @@ update msg model =
                     ( model, Cmd.none )
 
         CanceledNatively ->
+            ( ConfirmCancel model, Cmd.none )
+
+        ConfirmedCancel ->
             ( Closed, Cmd.none )
+
+        AbortCancel ->
+            case model of
+                ConfirmCancel prevModel ->
+                    ( prevModel, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
@@ -108,7 +125,7 @@ view model =
         ( button, dialogContent, dialogOpen ) =
             case model of
                 Closed ->
-                    ( viewButton ClickedGiveFeedback "Give feedback"
+                    ( viewDialogTriggerButton ClickedGiveFeedback "Give feedback"
                     , Html.text ""
                     , False
                     )
@@ -123,6 +140,12 @@ view model =
                 ThankYou data timer ->
                     ( Html.text ""
                     , viewThankYou data timer
+                    , True
+                    )
+
+                ConfirmCancel _ ->
+                    ( Html.text ""
+                    , viewConfirmCancel
                     , True
                     )
     in
@@ -166,16 +189,43 @@ viewThankYou data timer =
         ]
 
 
+viewConfirmCancel : Html Msg
+viewConfirmCancel =
+    Html.div []
+        [ Html.h1 [ Attr.class "text-xl font-bold" ]
+            [ Html.text "Are you sure you want to cancel?" ]
+        , Html.div [ Attr.class "flex justify-center" ]
+            [ viewButton ConfirmedCancel "Yes!"
+            , viewButton AbortCancel "No, go back"
+            ]
+        ]
+
+
+buttonAttrs : List (Html.Attribute msg)
+buttonAttrs =
+    [ Attr.class "p-2 m-2"
+    , Attr.class "bg-[#5cee9a]"
+    , Attr.class "rounded"
+    , Attr.class "cursor-pointer"
+    ]
+
+
+viewDialogTriggerButton : msg -> String -> Html msg
+viewDialogTriggerButton action label =
+    Html.div
+        (Events.onClick action
+            :: Attr.class "fixed top-0 right-0"
+            :: buttonAttrs
+        )
+        [ Html.text label ]
+
+
 viewButton : msg -> String -> Html msg
 viewButton action label =
     Html.div
-        [ Events.onClick action
-        , Attr.class "fixed top-0 right-0"
-        , Attr.class "p-2 m-2"
-        , Attr.class "bg-[#5cee9a]"
-        , Attr.class "rounded"
-        , Attr.class "cursor-pointer"
-        ]
+        (Events.onClick action
+            :: buttonAttrs
+        )
         [ Html.text label ]
 
 
