@@ -1,8 +1,8 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
 import Api exposing (ArticleSummary)
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html)
+import Html.Attributes as Attr
 import RemoteData exposing (WebData)
 import Route
 
@@ -30,37 +30,40 @@ update msg model =
             ( { model | articles = response }, Cmd.none )
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    div [ class "page home" ]
-        [ h1 [] [ text "Programming Articles" ]
-        , p [ class "subtitle" ] [ text "Wisdom from the trenches (and some questionable advice)" ]
+    Html.div []
+        [ Html.h1 [ Attr.class "font-bold text-2xl" ] [ Html.text "Programming Articles" ]
+        , Html.p [ Attr.class "italic text-gray-500" ] [ Html.text "Wisdom from the trenches (and some questionable advice)" ]
         , viewArticles model.articles
         ]
 
 
-viewArticles : WebData (List ArticleSummary) -> Html msg
+viewArticles : WebData (List ArticleSummary) -> Html Msg
 viewArticles webData =
     case webData of
         RemoteData.NotAsked ->
-            text ""
+            Html.text ""
 
         RemoteData.Loading ->
-            p [ class "loading" ] [ text "Loading articles..." ]
+            Html.p [ Attr.class "italic text-gray-500" ] [ Html.text "Loading articles..." ]
 
         RemoteData.Failure _ ->
-            p [ class "error" ] [ text "Failed to load articles. Is the server running?" ]
+            Html.p [ Attr.class "italic text-red-600" ] [ Html.text "Failed to load articles. Is the server running?" ]
 
         RemoteData.Success articles ->
-            ul [ class "article-list" ]
+            Html.ul [ Attr.class "mt-8 list-none" ]
                 (List.map viewArticleSummary articles)
 
 
-viewArticleSummary : ArticleSummary -> Html msg
+viewArticleSummary : ArticleSummary -> Html Msg
 viewArticleSummary article =
-    li []
-        [ a [ href (Route.toPath (Route.Article article.id)) ]
-            [ h2 [] [ text article.title ]
-            , p [] [ text article.summary ]
+    Html.li
+        [ Attr.class "pb-5 mb-5"
+        , Attr.class "border-b border-gray-200"
+        ]
+        [ Html.a [ Attr.href (Route.toPath (Route.Article article.id)), Attr.class "no-underline text-inherit hover:[&_h2]:text-blue-600" ]
+            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ] [ Html.text article.title ]
+            , Html.p [ Attr.class "m-0 text-gray-500" ] [ Html.text article.summary ]
             ]
         ]

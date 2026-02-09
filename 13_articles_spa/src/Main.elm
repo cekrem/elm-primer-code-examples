@@ -2,8 +2,8 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html)
+import Html.Attributes as Attr
 import Page.Article
 import Page.Home
 import Page.NotFound
@@ -130,9 +130,9 @@ view : Model -> Browser.Document Msg
 view model =
     { title = pageTitle model.page
     , body =
-        [ div [ class "app" ]
+        [ Html.div [ Attr.class "p-8" ]
             [ viewNav
-            , main_ [] [ viewPage model.page ]
+            , Html.main_ [] [ viewPage model.page ]
             ]
         ]
     }
@@ -156,9 +156,13 @@ pageTitle page =
 
 viewNav : Html msg
 viewNav =
-    nav []
-        [ a [ href (Route.toPath Route.Home) ] [ text "Home" ]
-        , a [ href (Route.toPath (Route.Search Nothing)) ] [ text "Search" ]
+    Html.nav
+        [ Attr.class "flex gap-5"
+        , Attr.class "pb-2.5 mb-5"
+        , Attr.class "border-b border-gray-200"
+        ]
+        [ Html.a [ Attr.href (Route.toPath Route.Home), Attr.class "no-underline hover:underline text-blue-600" ] [ Html.text "Home" ]
+        , Html.a [ Attr.href (Route.toPath (Route.Search Nothing)), Attr.class "no-underline hover:underline text-blue-600" ] [ Html.text "Search" ]
         ]
 
 
@@ -167,9 +171,11 @@ viewPage page =
     case page of
         HomePage homeModel ->
             Page.Home.view homeModel
+                |> Html.map GotHomeMsg
 
         ArticlePage articleModel ->
             Page.Article.view articleModel
+                |> Html.map GotArticleMsg
 
         SearchPage searchModel ->
             Page.Search.view searchModel

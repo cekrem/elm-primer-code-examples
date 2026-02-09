@@ -1,9 +1,9 @@
 module Page.Search exposing (Model, Msg, init, update, view)
 
 import Api exposing (ArticleSummary)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html exposing (Html)
+import Html.Attributes as Attr
+import Html.Events as Events
 import RemoteData exposing (WebData)
 import Route
 
@@ -40,8 +40,8 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "page search" ]
-        [ h1 [] [ text "Search Articles" ]
+    Html.div []
+        [ Html.h1 [ Attr.class "font-bold text-2xl" ] [ Html.text "Search Articles" ]
         , viewSearchBox model.query
         , viewResults model
         ]
@@ -49,12 +49,16 @@ view model =
 
 viewSearchBox : String -> Html Msg
 viewSearchBox query =
-    div [ class "search-box" ]
-        [ input
-            [ type_ "text"
-            , placeholder "Search articles..."
-            , value query
-            , onInput QueryChanged
+    Html.div [ Attr.class "mb-5" ]
+        [ Html.input
+            [ Attr.type_ "text"
+            , Attr.placeholder "Search articles..."
+            , Attr.value query
+            , Events.onInput QueryChanged
+            , Attr.class "w-full"
+            , Attr.class "p-2.5"
+            , Attr.class "text-base"
+            , Attr.class "border border-gray-300 rounded"
             ]
             []
         ]
@@ -64,13 +68,13 @@ viewResults : Model -> Html Msg
 viewResults model =
     case model.articles of
         RemoteData.NotAsked ->
-            text ""
+            Html.text ""
 
         RemoteData.Loading ->
-            p [ class "loading" ] [ text "Loading articles..." ]
+            Html.p [ Attr.class "italic text-gray-500" ] [ Html.text "Loading articles..." ]
 
         RemoteData.Failure _ ->
-            p [ class "error" ] [ text "Failed to load articles." ]
+            Html.p [ Attr.class "italic text-red-600" ] [ Html.text "Failed to load articles." ]
 
         RemoteData.Success articles ->
             let
@@ -78,8 +82,8 @@ viewResults model =
                     filterArticles model.query articles
             in
             if List.isEmpty filtered then
-                p [ class "no-results" ]
-                    [ text <|
+                Html.p [ Attr.class "italic text-gray-500" ]
+                    [ Html.text <|
                         if String.isEmpty model.query then
                             "Type to search articles..."
 
@@ -88,7 +92,7 @@ viewResults model =
                     ]
 
             else
-                ul [ class "article-list" ]
+                Html.ul [ Attr.class "p-0 list-none" ]
                     (List.map viewArticleSummary filtered)
 
 
@@ -112,9 +116,12 @@ filterArticles query articles =
 
 viewArticleSummary : ArticleSummary -> Html Msg
 viewArticleSummary article =
-    li []
-        [ a [ href (Route.toPath (Route.Article article.id)) ]
-            [ h2 [] [ text article.title ]
-            , p [] [ text article.summary ]
+    Html.li
+        [ Attr.class "pb-5 mb-5"
+        , Attr.class "border-b border-gray-200"
+        ]
+        [ Html.a [ Attr.href (Route.toPath (Route.Article article.id)), Attr.class "no-underline text-inherit hover:[&_h2]:text-blue-600" ]
+            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ] [ Html.text article.title ]
+            , Html.p [ Attr.class "m-0 text-gray-500" ] [ Html.text article.summary ]
             ]
         ]

@@ -4,29 +4,13 @@ A simple single-page application demonstrating Elm routing and navigation.
 
 ## Running the Example
 
-### 1. Start the API server
-
 ```bash
-cd server
 npm install
 npm start
 ```
 
-The server runs at http://localhost:3001
-
-### 2. Build and serve the Elm app
-
-```bash
-# Build the Elm code
-elm make src/Main.elm --output=elm.js
-
-# Serve with any static server, e.g.:
-npx serve .
-# or
-python -m http.server 8000
-```
-
-Then open http://localhost:8000 (or whatever port your server uses).
+This starts both the Elm app (with hot reload via elm-live) and the API server
+(http://localhost:3001) using `concurrently`.
 
 ## What This Demonstrates
 

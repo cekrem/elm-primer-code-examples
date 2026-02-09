@@ -1,8 +1,8 @@
 module Page.Article exposing (Model, Msg, init, update, view)
 
 import Api exposing (Article)
-import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html exposing (Html)
+import Html.Attributes as Attr
 import RemoteData exposing (WebData)
 import Route
 
@@ -33,42 +33,47 @@ update msg model =
             ( { model | article = response }, Cmd.none )
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    div [ class "page article" ]
-        [ a [ href (Route.toPath Route.Home), class "back-link" ]
-            [ text "< Back to articles" ]
+    Html.div []
+        [ Html.a
+            [ Attr.href (Route.toPath Route.Home)
+            , Attr.class "inline-block mb-5"
+            , Attr.class "no-underline hover:underline text-blue-600"
+            ]
+            [ Html.text "< Back to articles" ]
         , viewArticle model.article
         ]
 
 
-viewArticle : WebData Article -> Html msg
+viewArticle : WebData Article -> Html Msg
 viewArticle webData =
     case webData of
         RemoteData.NotAsked ->
-            text ""
+            Html.text ""
 
         RemoteData.Loading ->
-            p [ class "loading" ] [ text "Loading article..." ]
+            Html.p [ Attr.class "italic text-gray-500" ] [ Html.text "Loading article..." ]
 
         RemoteData.Failure _ ->
-            div []
-                [ h1 [] [ text "Article not found" ]
-                , p [] [ text "This article doesn't exist or couldn't be loaded." ]
+            Html.div []
+                [ Html.h1 [ Attr.class "font-bold text-2xl" ] [ Html.text "Article not found" ]
+                , Html.p [] [ Html.text "This article doesn't exist or couldn't be loaded." ]
                 ]
 
         RemoteData.Success article ->
-            article_
-                [ h1 [] [ text article.title ]
-                , p [ class "summary" ] [ text article.summary ]
-                , div [ class "body" ]
+            Html.node "article"
+                []
+                [ Html.h1 [ Attr.class "mb-2 font-bold text-2xl" ] [ Html.text article.title ]
+                , Html.p
+                    [ Attr.class "pl-4 mb-5"
+                    , Attr.class "italic text-lg text-gray-500"
+                    , Attr.class "border-l-3 border-gray-300"
+                    ]
+                    [ Html.text article.summary ]
+                , Html.div []
                     (article.body
                         |> String.split "\n\n"
-                        |> List.map (\para -> p [] [ text para ])
+                        |> List.map (\para -> Html.p [ Attr.class "mt-4" ] [ Html.text para ])
                     )
                 ]
-
-
-article_ : List (Html msg) -> Html msg
-article_ children =
-    node "article" [] children
