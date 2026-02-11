@@ -91,23 +91,23 @@ update msg model =
             ( model, Cmd.none )
 
 
-changeRouteTo : Route -> Model -> ( Model, Cmd Msg )
-changeRouteTo route model =
-    case route of
-        Route.Home ->
+changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo maybeRoute model =
+    case maybeRoute of
+        Nothing ->
+            ( { model | page = NotFoundPage }, Cmd.none )
+
+        Just Route.Home ->
             Page.Home.init
                 |> updateWith HomePage GotHomeMsg model
 
-        Route.Article id ->
+        Just (Route.Article id) ->
             Page.Article.init id
                 |> updateWith ArticlePage GotArticleMsg model
 
-        Route.Search maybeQuery ->
+        Just (Route.Search maybeQuery) ->
             Page.Search.init maybeQuery
                 |> updateWith SearchPage GotSearchMsg model
-
-        Route.NotFound ->
-            ( { model | page = NotFoundPage }, Cmd.none )
 
 
 updateWith :
@@ -145,7 +145,7 @@ pageTitle page =
             "Articles"
 
         ArticlePage articleModel ->
-            "Article " ++ String.fromInt articleModel.articleId
+            Page.Article.title articleModel
 
         SearchPage _ ->
             "Search"
@@ -161,8 +161,16 @@ viewNav =
         , Attr.class "pb-2.5 mb-5"
         , Attr.class "border-b border-gray-200"
         ]
-        [ Html.a [ Attr.href (Route.toPath Route.Home), Attr.class "no-underline hover:underline text-blue-600" ] [ Html.text "Home" ]
-        , Html.a [ Attr.href (Route.toPath (Route.Search Nothing)), Attr.class "no-underline hover:underline text-blue-600" ] [ Html.text "Search" ]
+        [ Html.a
+            [ Attr.href (Route.toPath Route.Home)
+            , Attr.class "no-underline hover:underline text-blue-600"
+            ]
+            [ Html.text "Home" ]
+        , Html.a
+            [ Attr.href (Route.toPath (Route.Search Nothing))
+            , Attr.class "no-underline hover:underline text-blue-600"
+            ]
+            [ Html.text "Search" ]
         ]
 
 

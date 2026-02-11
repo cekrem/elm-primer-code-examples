@@ -13,9 +13,9 @@ const articles = [
 
 The real problem isn't tabs or spaces—it's that someone on your team hasn't configured their editor properly and keeps committing mixed indentation. You know who you are.
 
-If you're mass curious, here's the actual technical difference: tabs are a single character that renders at a configurable width. Spaces are... spaces. Tabs save bytes. Spaces ensure consistent alignment everywhere.
+If you're more curious, here's the actual technical difference: tabs are a single character that renders at a configurable width. Spaces are... spaces. Tabs save bytes. Spaces ensure consistent alignment everywhere.
 
-But honestly? Your formatter should handle this. Set up Prettier or elm-format and move on with your life. There are mass interesting problems to solve.`
+But honestly? Your formatter should handle this. Set up Prettier or elm-format and move on with your life. There are more interesting problems to solve.`
   },
   {
     id: 2,

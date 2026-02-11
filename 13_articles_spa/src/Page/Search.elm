@@ -82,14 +82,16 @@ viewResults model =
                     filterArticles model.query articles
             in
             if List.isEmpty filtered then
-                Html.p [ Attr.class "italic text-gray-500" ]
-                    [ Html.text <|
+                let
+                    message =
                         if String.isEmpty model.query then
                             "Type to search articles..."
 
                         else
                             "No articles match your search."
-                    ]
+                in
+                Html.p [ Attr.class "italic text-gray-500" ]
+                    [ Html.text message ]
 
             else
                 Html.ul [ Attr.class "p-0 list-none" ]
@@ -120,8 +122,14 @@ viewArticleSummary article =
         [ Attr.class "pb-5 mb-5"
         , Attr.class "border-b border-gray-200"
         ]
-        [ Html.a [ Attr.href (Route.toPath (Route.Article article.id)), Attr.class "no-underline text-inherit hover:[&_h2]:text-blue-600" ]
-            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ] [ Html.text article.title ]
-            , Html.p [ Attr.class "m-0 text-gray-500" ] [ Html.text article.summary ]
+        [ Html.a
+            [ Attr.href (Route.toPath (Route.Article article.id))
+            , Attr.class "no-underline text-inherit"
+            , Attr.class "hover:[&_h2]:text-blue-600"
+            ]
+            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ]
+                [ Html.text article.title ]
+            , Html.p [ Attr.class "m-0 text-gray-500" ]
+                [ Html.text article.summary ]
             ]
         ]

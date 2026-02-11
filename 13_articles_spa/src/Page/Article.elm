@@ -1,4 +1,4 @@
-module Page.Article exposing (Model, Msg, init, update, view)
+module Page.Article exposing (Model, Msg, init, title, update, view)
 
 import Api exposing (Article)
 import Html exposing (Html)
@@ -24,6 +24,16 @@ init articleId =
       }
     , Api.fetchArticle articleId GotArticle
     )
+
+
+title : Model -> String
+title model =
+    case model.article of
+        RemoteData.Success article ->
+            article.title
+
+        _ ->
+            "Article"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

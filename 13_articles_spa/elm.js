@@ -11118,35 +11118,37 @@ var $author$project$Main$updateWith = F4(
 			A2($elm$core$Platform$Cmd$map, toMsg, pageCmd));
 	});
 var $author$project$Main$changeRouteTo = F2(
-	function (route, model) {
-		switch (route.$) {
-			case 'Home':
-				return A4($author$project$Main$updateWith, $author$project$Main$HomePage, $author$project$Main$GotHomeMsg, model, $author$project$Page$Home$init);
-			case 'Article':
-				var id = route.a;
-				return A4(
-					$author$project$Main$updateWith,
-					$author$project$Main$ArticlePage,
-					$author$project$Main$GotArticleMsg,
+	function (maybeRoute, model) {
+		if (maybeRoute.$ === 'Nothing') {
+			return _Utils_Tuple2(
+				_Utils_update(
 					model,
-					$author$project$Page$Article$init(id));
-			case 'Search':
-				var maybeQuery = route.a;
-				return A4(
-					$author$project$Main$updateWith,
-					$author$project$Main$SearchPage,
-					$author$project$Main$GotSearchMsg,
-					model,
-					$author$project$Page$Search$init(maybeQuery));
-			default:
-				return _Utils_Tuple2(
-					_Utils_update(
+					{page: $author$project$Main$NotFoundPage}),
+				$elm$core$Platform$Cmd$none);
+		} else {
+			switch (maybeRoute.a.$) {
+				case 'Home':
+					var _v1 = maybeRoute.a;
+					return A4($author$project$Main$updateWith, $author$project$Main$HomePage, $author$project$Main$GotHomeMsg, model, $author$project$Page$Home$init);
+				case 'Article':
+					var id = maybeRoute.a.a;
+					return A4(
+						$author$project$Main$updateWith,
+						$author$project$Main$ArticlePage,
+						$author$project$Main$GotArticleMsg,
 						model,
-						{page: $author$project$Main$NotFoundPage}),
-					$elm$core$Platform$Cmd$none);
+						$author$project$Page$Article$init(id));
+				default:
+					var maybeQuery = maybeRoute.a.a;
+					return A4(
+						$author$project$Main$updateWith,
+						$author$project$Main$SearchPage,
+						$author$project$Main$GotSearchMsg,
+						model,
+						$author$project$Page$Search$init(maybeQuery));
+			}
 		}
 	});
-var $author$project$Route$NotFound = {$: 'NotFound'};
 var $elm$url$Url$Parser$State = F5(
 	function (visited, unvisited, params, frag, value) {
 		return {frag: frag, params: params, unvisited: unvisited, value: value, visited: visited};
@@ -11473,10 +11475,7 @@ var $author$project$Route$parser = $elm$url$Url$Parser$oneOf(
 				$elm$url$Url$Parser$Query$string('q')))
 		]));
 var $author$project$Route$fromUrl = function (url) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		$author$project$Route$NotFound,
-		A2($elm$url$Url$Parser$parse, $author$project$Route$parser, url));
+	return A2($elm$url$Url$Parser$parse, $author$project$Route$parser, url);
 };
 var $author$project$Main$init = F3(
 	function (_v0, url, key) {
@@ -11641,13 +11640,22 @@ var $author$project$Main$update = F2(
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $author$project$Page$Article$title = function (model) {
+	var _v0 = model.article;
+	if (_v0.$ === 'Success') {
+		var article = _v0.a;
+		return article.title;
+	} else {
+		return 'Article';
+	}
+};
 var $author$project$Main$pageTitle = function (page) {
 	switch (page.$) {
 		case 'HomePage':
 			return 'Articles';
 		case 'ArticlePage':
 			var articleModel = page.a;
-			return 'Article ' + $elm$core$String$fromInt(articleModel.articleId);
+			return $author$project$Page$Article$title(articleModel);
 		case 'SearchPage':
 			return 'Search';
 		default:
@@ -11700,7 +11708,7 @@ var $author$project$Route$toPath = function (route) {
 						$elm$core$String$fromInt(id)
 					]),
 				_List_Nil);
-		case 'Search':
+		default:
 			var maybeQuery = route.a;
 			if (maybeQuery.$ === 'Just') {
 				var query = maybeQuery.a;
@@ -11719,12 +11727,6 @@ var $author$project$Route$toPath = function (route) {
 						['search']),
 					_List_Nil);
 			}
-		default:
-			return A2(
-				$elm$url$Url$Builder$absolute,
-				_List_fromArray(
-					['not-found']),
-				_List_Nil);
 	}
 };
 var $author$project$Main$viewNav = A2(
@@ -11894,7 +11896,8 @@ var $author$project$Page$Home$viewArticleSummary = function (article) {
 						$elm$html$Html$Attributes$href(
 						$author$project$Route$toPath(
 							$author$project$Route$Article(article.id))),
-						$elm$html$Html$Attributes$class('no-underline text-inherit hover:[&_h2]:text-blue-600')
+						$elm$html$Html$Attributes$class('no-underline text-inherit'),
+						$elm$html$Html$Attributes$class('hover:[&_h2]:text-blue-600')
 					]),
 				_List_fromArray(
 					[
@@ -12074,7 +12077,8 @@ var $author$project$Page$Search$viewArticleSummary = function (article) {
 						$elm$html$Html$Attributes$href(
 						$author$project$Route$toPath(
 							$author$project$Route$Article(article.id))),
-						$elm$html$Html$Attributes$class('no-underline text-inherit hover:[&_h2]:text-blue-600')
+						$elm$html$Html$Attributes$class('no-underline text-inherit'),
+						$elm$html$Html$Attributes$class('hover:[&_h2]:text-blue-600')
 					]),
 				_List_fromArray(
 					[
@@ -12131,23 +12135,27 @@ var $author$project$Page$Search$viewResults = function (model) {
 		default:
 			var articles = _v0.a;
 			var filtered = A2($author$project$Page$Search$filterArticles, model.query, articles);
-			return $elm$core$List$isEmpty(filtered) ? A2(
-				$elm$html$Html$p,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('italic text-gray-500')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(
-						$elm$core$String$isEmpty(model.query) ? 'Type to search articles...' : 'No articles match your search.')
-					])) : A2(
-				$elm$html$Html$ul,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('p-0 list-none')
-					]),
-				A2($elm$core$List$map, $author$project$Page$Search$viewArticleSummary, filtered));
+			if ($elm$core$List$isEmpty(filtered)) {
+				var message = $elm$core$String$isEmpty(model.query) ? 'Type to search articles...' : 'No articles match your search.';
+				return A2(
+					$elm$html$Html$p,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('italic text-gray-500')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(message)
+						]));
+			} else {
+				return A2(
+					$elm$html$Html$ul,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('p-0 list-none')
+						]),
+					A2($elm$core$List$map, $author$project$Page$Search$viewArticleSummary, filtered));
+			}
 	}
 };
 var $author$project$Page$Search$QueryChanged = function (a) {

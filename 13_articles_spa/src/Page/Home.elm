@@ -62,8 +62,14 @@ viewArticleSummary article =
         [ Attr.class "pb-5 mb-5"
         , Attr.class "border-b border-gray-200"
         ]
-        [ Html.a [ Attr.href (Route.toPath (Route.Article article.id)), Attr.class "no-underline text-inherit hover:[&_h2]:text-blue-600" ]
-            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ] [ Html.text article.title ]
-            , Html.p [ Attr.class "m-0 text-gray-500" ] [ Html.text article.summary ]
+        [ Html.a
+            [ Attr.href (Route.toPath (Route.Article article.id))
+            , Attr.class "no-underline text-inherit"
+            , Attr.class "hover:[&_h2]:text-blue-600"
+            ]
+            [ Html.h2 [ Attr.class "m-0 mb-1 text-lg" ]
+                [ Html.text article.title ]
+            , Html.p [ Attr.class "m-0 text-gray-500" ]
+                [ Html.text article.summary ]
             ]
         ]

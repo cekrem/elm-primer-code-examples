@@ -2,7 +2,7 @@ module Route exposing (Route(..), fromUrl, toPath)
 
 import Url exposing (Url)
 import Url.Builder as Builder
-import Url.Parser as Parser exposing ((</>), (<?>), Parser, int, map, oneOf, s, top)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser)
 import Url.Parser.Query as Query
 
 
@@ -10,22 +10,20 @@ type Route
     = Home
     | Article Int
     | Search (Maybe String)
-    | NotFound
 
 
 parser : Parser (Route -> a) a
 parser =
-    oneOf
-        [ map Home top
-        , map Article (s "article" </> int)
-        , map Search (s "search" <?> Query.string "q")
+    Parser.oneOf
+        [ Parser.map Home Parser.top
+        , Parser.map Article (Parser.s "article" </> Parser.int)
+        , Parser.map Search (Parser.s "search" <?> Query.string "q")
         ]
 
 
-fromUrl : Url -> Route
+fromUrl : Url -> Maybe Route
 fromUrl url =
     Parser.parse parser url
-        |> Maybe.withDefault NotFound
 
 
 toPath : Route -> String
@@ -44,6 +42,3 @@ toPath route =
 
                 Nothing ->
                     Builder.absolute [ "search" ] []
-
-        NotFound ->
-            Builder.absolute [ "not-found" ] []
