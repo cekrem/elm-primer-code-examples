@@ -25,6 +25,7 @@ main =
 -- MODEL
 
 
+-- REVIEW-TECH: Should be `( Model, Cmd Msg )` not `( { phrase : String }, Cmd msg )` to match chapter text and Browser.element convention
 init : () -> ( { phrase : String }, Cmd msg )
 init () =
     ( { phrase = defaultPhrase
