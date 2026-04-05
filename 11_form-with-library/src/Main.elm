@@ -27,7 +27,7 @@ initialModel =
 
 type Msg
     = FormChanged (Dict String String)
-    | Submit
+    | FormSubmitted
 
 
 update : Msg -> Model -> Model
@@ -36,7 +36,7 @@ update msg model =
         FormChanged values ->
             { model | formValues = values }
 
-        Submit ->
+        FormSubmitted ->
             Debug.log "submit" model
 
 
@@ -59,7 +59,7 @@ view model =
             |> Form.withPlaceholder "Message"
         ]
         |> Form.withSubmitButton "Submit" []
-        |> Form.build model.formValues FormChanged Submit
+        |> Form.build model.formValues FormChanged FormSubmitted
 
 
 emailValidator : String -> Result (List (Html.Attribute msg)) ()

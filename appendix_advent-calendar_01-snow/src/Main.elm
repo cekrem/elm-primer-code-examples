@@ -56,13 +56,13 @@ type alias Model =
 type Msg
     = GotDay Calendar.Day
     | GotSnow Snow.State
-    | ToggleGiftSlotOpen Int
+    | ClickedGiftSlot Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ToggleGiftSlotOpen num ->
+        ClickedGiftSlot num ->
             let
                 transform : Int -> Set Int -> Set Int
                 transform =
@@ -116,7 +116,7 @@ view { today, openSlots, snow } =
             :: (Calendar.adventDays
                     |> List.map
                         (\num ->
-                            viewGiftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
+                            viewGiftSlot num (isOpen num) (getGift num) (ClickedGiftSlot num)
                         )
                )
         )

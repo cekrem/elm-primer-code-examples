@@ -31,32 +31,32 @@ initialModel =
 
 
 type Msg
-    = UpdateName String
-    | UpdateEmail String
-    | UpdateMessage String
-    | Submit
+    = EnteredName String
+    | EnteredEmail String
+    | EnteredMessage String
+    | FormSubmitted
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        UpdateName name ->
+        EnteredName name ->
             { model | name = name }
 
-        UpdateEmail email ->
+        EnteredEmail email ->
             { model | email = email }
 
-        UpdateMessage message ->
+        EnteredMessage message ->
             { model | message = message }
 
-        Submit ->
+        FormSubmitted ->
             Debug.log "submit" model
 
 
 view : Model -> Html Msg
 view model =
     Html.form
-        [ Events.onSubmit Submit
+        [ Events.onSubmit FormSubmitted
         , Attr.class "flex flex-col gap-4 max-w-md mx-auto"
         , Attr.class "bg-gray-100 p-4 rounded"
         ]
@@ -64,20 +64,20 @@ view model =
             [ Attr.type_ "text"
             , Attr.value model.name
             , Attr.placeholder "Name"
-            , Events.onInput UpdateName
+            , Events.onInput EnteredName
             ]
             []
         , Html.input
             [ Attr.type_ "email"
             , Attr.value model.email
             , Attr.placeholder "Email"
-            , Events.onInput UpdateEmail
+            , Events.onInput EnteredEmail
             ]
             []
         , Html.input
             [ Attr.value model.message
             , Attr.placeholder "Message"
-            , Events.onInput UpdateMessage
+            , Events.onInput EnteredMessage
             ]
             []
         , Html.button [ Attr.type_ "submit" ] [ Html.text "Submit" ]

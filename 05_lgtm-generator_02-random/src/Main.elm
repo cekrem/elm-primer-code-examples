@@ -44,21 +44,21 @@ type alias Model =
 
 
 type Msg
-    = ChangePhrase
+    = ClickedNewPhrase
     | GotPhrase String
-    | CopyToClipboard
+    | ClickedCopy
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangePhrase ->
+        ClickedNewPhrase ->
             ( model, Random.generate GotPhrase phraseGenerator )
 
         GotPhrase newPhrase ->
             ( { model | phrase = newPhrase }, Cmd.none )
 
-        CopyToClipboard ->
+        ClickedCopy ->
             -- We'll implement clipboard access in Chapter 8 when we cover JavaScript interop
             ( model, Cmd.none )
 
@@ -102,11 +102,11 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.span
-            [ Events.onClick CopyToClipboard
+            [ Events.onClick ClickedCopy
             ]
             [ Html.text model.phrase ]
         , Html.span
-            [ Events.onClick ChangePhrase
+            [ Events.onClick ClickedNewPhrase
             , Attributes.style "border" "thin solid black"
             , Attributes.style "cursor" "pointer"
             ]

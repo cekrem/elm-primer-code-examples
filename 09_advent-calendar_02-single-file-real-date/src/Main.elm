@@ -121,13 +121,13 @@ giftsForToday day =
 
 type Msg
     = GotDay Day
-    | ToggleGiftSlotOpen Int
+    | ClickedGiftSlot Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ToggleGiftSlotOpen num ->
+        ClickedGiftSlot num ->
             let
                 transform : Int -> Set Int -> Set Int
                 transform =
@@ -216,7 +216,7 @@ view { today, openSlots } =
             :: (adventDays
                     |> List.map
                         (\num ->
-                            viewGiftSlot num (isOpen num) (getGift num) (ToggleGiftSlotOpen num)
+                            viewGiftSlot num (isOpen num) (getGift num) (ClickedGiftSlot num)
                         )
                )
         )

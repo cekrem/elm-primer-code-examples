@@ -58,15 +58,15 @@ type alias PhrasePayload =
 
 
 type Msg
-    = ChangePhrase
+    = ClickedNewPhrase
     | GotPhrase (Result Error PhrasePayload)
-    | CopyToClipboard
+    | ClickedCopy
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ChangePhrase ->
+        ClickedNewPhrase ->
             ( { model | phrase = Loading }, fetchLgtmPhrase GotPhrase )
 
         GotPhrase result ->
@@ -77,7 +77,7 @@ update msg model =
                 Err err ->
                     ( { model | phrase = Error err }, Cmd.none )
 
-        CopyToClipboard ->
+        ClickedCopy ->
             -- We'll implement clipboard access in Chapter 8 when we cover JavaScript interop
             ( model, Cmd.none )
 
@@ -110,11 +110,11 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.span
-            [ Events.onClick CopyToClipboard
+            [ Events.onClick ClickedCopy
             ]
             [ viewPhrase model.phrase ]
         , Html.span
-            [ Events.onClick ChangePhrase
+            [ Events.onClick ClickedNewPhrase
             , Attributes.style "border" "thin solid black"
             , Attributes.style "cursor" "pointer"
             ]
