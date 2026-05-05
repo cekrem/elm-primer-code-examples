@@ -25,18 +25,17 @@ main =
 -- MODEL
 
 
--- REVIEW-TECH: Should be `( Model, Cmd Msg )` not `( { phrase : String }, Cmd msg )` to match chapter text and Browser.element convention
-init : () -> ( { phrase : String }, Cmd msg )
+type alias Model =
+    { phrase : String
+    }
+
+
+init : () -> ( Model, Cmd Msg )
 init () =
     ( { phrase = defaultPhrase
       }
     , Cmd.none
     )
-
-
-type alias Model =
-    { phrase : String
-    }
 
 
 
@@ -59,7 +58,8 @@ update msg model =
             ( { model | phrase = newPhrase }, Cmd.none )
 
         ClickedCopy ->
-            -- We'll implement clipboard access in Chapter 8 when we cover JavaScript interop
+            -- Clipboard access lands in Chapter 8
+            -- when we cover JavaScript interop.
             ( model, Cmd.none )
 
 
